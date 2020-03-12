@@ -139,19 +139,28 @@ func setup() {
 	Untar(path,ocContent)
 	Untar(path,enmasseContent)
 
-	cmd := exec.Command("./oc","project")
-	cmd.Stdout = os.Stdout
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal(err)
+	//Test you are correctly connected to openshift cluster
+	ocCommands := [][]string{}
+
+	ocCommands = append(ocCommands,[]string{"./oc","project"} )
+	ocCommands = append(ocCommands,[]string{"./oc","projects"} )
+	
+	for command := range ocCommands {
+		cmd := exec.Command(ocCommands[command][0], ocCommands[command][1:]...)
+		cmd.Stdout = os.Stdout
+		err = cmd.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
+
 
 }
 
 
 
 // setupCmd represents the setup command
-var setupCmd = &cobra.Command{
+var enmasse_setupCmd = &cobra.Command{
 	Use:   "setup",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
@@ -167,7 +176,7 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	enmasseCmd.AddCommand(setupCmd)
+	enmasseCmd.AddCommand(enmasse_setupCmd)
 
 	// Here you will define your flags and configuration settings.
 
