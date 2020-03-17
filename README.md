@@ -1,24 +1,16 @@
-# OpenShift Clients
+# IoT CLI 
 
-The OpenShift client `oc` simplifies working with Kubernetes and OpenShift
-clusters, offering a number of advantages over `kubectl` such as easy login,
-kube config file management, and access to developer tools. The `kubectl`
-binary is included alongside for when strict Kubernetes compliance is necessary.
+This CLI is intended to make deploying Cloud native IoT and Edge applications easier, More information can be found on the following [document](https://docs.google.com/document/d/1lS5YWPVCF4OhbVfB3reJDtxAojpp69W_ZBk5gwAvd6M/edit?usp=sharing)
 
-To learn more about OpenShift, visit [docs.openshift.com](https://docs.openshift.com)
-and select the version of OpenShift you are using.
+## Prerequsites 
 
-## Installing the tools
+An functioning openshift 4.X cluster is required for this CLI's usage 
 
-After extracting this archive, move the `oc` and `kubectl` binaries
-to a location on your PATH such as `/usr/local/bin`. Then run:
+## Getting Started 
 
-    oc login [API_URL]
+Clone the Repo and simply run 
 
-to start a session against an OpenShift cluster. After login, run `oc` and
-`oc help` to learn more about how to get started with OpenShift.
+```
+IoTCLI setup
+```
 
-## License
-
-OpenShift is licensed under the Apache Public License 2.0. The source code for this
-program is [located on github](https://github.com/openshift/origin).
