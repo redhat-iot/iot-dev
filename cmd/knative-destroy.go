@@ -17,9 +17,48 @@ package cmd
 
 import (
 	"fmt"
-
+	"log"
+	"os"
+	"os/exec"
 	"github.com/spf13/cobra"
 )
+
+func destroyKnative(){ 
+	ocCommands := [][]string{}
+	ocCommands = append(ocCommands,[]string{"./oc" , "delete", "--filename", "https://github.com/knative/eventing/releases/download/v0.13.0/eventing.yaml"})
+	ocCommands = append(ocCommands,[]string{"./oc" ,"delete" ,"--selector", "knative.dev/crd-install=true" ,"--filename", "https://github.com/knative/eventing/releases/download/v0.13.0/eventing.yaml"})
+	ocCommands = append(ocCommands,[]string{"./oc" , "delete", "namespace", "knative-eventing"} )
+	ocCommands = append(ocCommands,[]string{"./oc", "delete", "knativeserving.operator.knative.dev", "knative-serving", "-n" ,"knative-serving"} )
+	ocCommands = append(ocCommands,[]string{"./oc" , "delete", "namespace", "knative-serving"} )
+	//ocCommands = append(ocCommands,[]string{"./oc","delete","-f","yamls/sub.yaml"} )
+	//ocCommands = append(ocCommands,[]string{"./oc","delete","-f","yamls/operatorgroup.yaml"} )
+	
+	for command := range ocCommands {
+		cmd := exec.Command(ocCommands[command][0], ocCommands[command][1:]...)
+		cmd.Stdout = os.Stdout
+		//cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		if err != nil {
+			//Igonore Resource Not found error and continue, but still notify the user
+			log.Println(err)
+		}
+	}
+
+	//delete Operator
+
+	currentCSV,err := exec.Command("bash","-c","./oc get subscription serverless-operator -n openshift-operators -o jsonpath='{.status.currentCSV}'").Output()
+	err = exec.Command("./oc" ,"delete" ,"subscription", "serverless-operator" ,"-n" ,"openshift-operators").Run()
+	if err != nil {
+		//Igonore Resource Not found error and continue, but still notify the user
+		log.Println(err)
+	}
+	err = exec.Command("./oc" ,"delete" ,"clusterserviceversion",string(currentCSV), "-n" ,"openshift-operators").Run()
+	if err != nil {
+		//Igonore Resource Not found error and continue, but still notify the user
+		log.Println(err)
+	}
+
+}
 
 // destroyCmd represents the destroy command
 var knative_destroyCmd = &cobra.Command{
@@ -33,6 +72,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("destroy called")
+		destroyKnative()
 	},
 }
 

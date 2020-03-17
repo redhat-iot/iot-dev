@@ -19,141 +19,63 @@ import (
 	"fmt"
 	"os"
 	"github.com/spf13/cobra"
-	"io"
-	"net/http"
-	"archive/tar"
-	"compress/gzip"
-	"path/filepath"
+	//"io"
 	"log"
 	"os/exec"
+	"strconv"
 	
 )
 
-var (
-	ocUrl = "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux-4.3.5.tar.gz"
-	enmasseUrl = "https://github.com/EnMasseProject/enmasse/releases/download/0.30.2/enmasse-0.30.2.tgz"
-)
-
-func downloadPkg(filepath string, url string) error{
-	resp, err := http.Get(url)
-	if err != nil{
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	out,err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	_,err = io.Copy(out, resp.Body)
-	return err
-}
-
-func Untar(dst string, r io.Reader) error {
-
-	gzr, err := gzip.NewReader(r)
-	if err != nil {
-		return err
-	}
-	defer gzr.Close()
-
-	tr := tar.NewReader(gzr)
-
-	for {
-		header, err := tr.Next()
-
-		switch {
-
-		// if no more files are found return
-		case err == io.EOF:
-			return nil
-
-		// return any other error
-		case err != nil:
-			return err
-
-		// if the header is nil, just skip it (not sure how this happens)
-		case header == nil:
-			continue
-		}
-
-		// the target location where the dir/file should be created
-		target := filepath.Join(dst, header.Name)
-
-		// the following switch could also be done using fi.Mode(), not sure if there
-		// a benefit of using one vs. the other.
-		// fi := header.FileInfo()
-
-		// check the file type
-		switch header.Typeflag {
-
-		// if its a dir and it doesn't exist create it
-		case tar.TypeDir:
-			if _, err := os.Stat(target); err != nil {
-				if err := os.MkdirAll(target, 0755); err != nil {
-					return err
-				}
-			}
-
-		// if it's a file create it
-		case tar.TypeReg:
-			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
-			if err != nil {
-				return err
-			}
-
-			// copy over contents
-			if _, err := io.Copy(f, tr); err != nil {
-				return err
-			}
-			
-			// manually close here after each file operation; defering would cause each file close
-			// to wait until all operations have completed.
-			f.Close()
-		}
-	}
-}
-
-func setup() { 
-	downloadPkg("oc.tar.gz", ocUrl)
-	downloadPkg("enmasse.tgz",enmasseUrl)
-	
-	ocContent, err := os.Open("oc.tar.gz")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	enmasseContent,err := os.Open("enmasse.tgz")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	path, err := os.Getwd()
-	if err != nil {
-    	log.Fatal(err)
-	}
-	
-	Untar(path,ocContent)
-	Untar(path,enmasseContent)
+func enmasseSetup() { 
 
 	//Test you are correctly connected to openshift cluster
 	ocCommands := [][]string{}
 
-	ocCommands = append(ocCommands,[]string{"./oc","project"} )
-	ocCommands = append(ocCommands,[]string{"./oc","projects"} )
 	
+	//install Enmasse
+	ocCommands = append(ocCommands,[]string{"bash","-c",". ./scripts/enmasseSetup.sh"} )
+	ocCommands = append(ocCommands,[]string{"./oc", "get", "-n", "myapp" ,"iotproject" ,"-o" ,"jsonpath={.items[*].status.isReady}"})
 	for command := range ocCommands {
 		cmd := exec.Command(ocCommands[command][0], ocCommands[command][1:]...)
 		cmd.Stdout = os.Stdout
-		err = cmd.Run()
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
+	//Wait to make iot-user until the IoTproject and IoT addressspace are ready 
+	var iotReady=false
+	var addrSpaceReady=false
+	for(!iotReady && !addrSpaceReady ){
+		
+		iot := exec.Command("./oc", "get", "-n", "myapp" ,"iotproject" ,"-o" ,"jsonpath={.items[*].status.isReady}")
+		iotin,err := iot.Output()
+		if err != nil {
+			log.Fatal(err)
+		}
+		
+		addrSpace := exec.Command("./oc", "get", "-n", "myapp" ,"addressspace" ,"-o" ,"jsonpath={.items[*].status.isReady}")
+		addrSpacein, err := addrSpace.Output()
+		if err != nil {
+			log.Fatal(err)
+		}
+		
+		iotReady, _ = strconv.ParseBool(string(iotin))
+		addrSpaceReady, _ = strconv.ParseBool(string(addrSpacein))
+		
+	}
+
+	log.Println("iotProject and iotAddressspace ready creating iot-user")
+
+	cmd := exec.Command("./oc", "create" ,"-f" ,"enmasse-0.30.2/install/components/iot/examples/iot-user.yaml")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
 
 }
 
@@ -171,7 +93,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("setup called")
-		setup()
+		enmasseSetup()
 	},
 }
 

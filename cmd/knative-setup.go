@@ -25,7 +25,7 @@ import (
 
 )
 
-var status = false
+//var setupStatus = false
 
 func knativeServing() {
 	
@@ -47,10 +47,39 @@ func knativeServing() {
 		//After installing the operator give cluster the time to distribute to all namespaces
 		log.Println(command)
 		if command == 1 {
-			time.Sleep(60.0 * time.Second)
+			time.Sleep(30.0 * time.Second)
 		}
 	}
+	time.Sleep(30.0 * time.Second)
+	//Pause Until Knative Serving is up and running ADD FEATURE can use the following Schematic
+	
+	/*var dependencies=false
+	var deployments=false
+	var install=false
+	var ready=false
+	m = make(map[string]int)
+
+	for(!deployments && !install && !ready && !dependencies ){
+		
+		deployCommand := exec.Command("bash","-c","oc get knativeserving.operator.knative.dev/knative-serving -n knative-serving --template='{{range .status.conditions}}{{.type .status}}{{end}}'")
+		deployCommand.Stderr = os.Stderr
+		iotin,err := iot.Output()
+		if err != nil {
+			log.Fatal(err)
+		}
+		
+		addrSpace, err := exec.Command("./oc", "get", "-n", "myapp" ,"addressspace" ,"-o" ,"jsonpath={.items[*].status.isReady}").Output()
+		if err != nil {
+			log.Fatal(err)
+		}
+		
+		iotReady, _ = strconv.ParseBool(string(iotin))
+		addrSpaceReady, _ = strconv.ParseBool(string(addrSpace))
+		
+	}*/
+	
 }
+//kubectl delete --selector knative.dev/crd-install=true --filename https://github.com/knative/eventing/releases/download/v0.13.0/eventing.yaml
 
 func knativeEventing() {
 
@@ -74,7 +103,7 @@ func knativeStatus(){
 	ocCommands := [][]string{}
 
 	ocCommands = append(ocCommands,[]string{"./oc","project"} )
-	ocCommands = append(ocCommands,[]string{"./oc", "get", "knativeserving/knative-serving" ,"-n", "knative-serving", "--template='{{range .status.conditions}}{{printf '%s=%s' .type .status}}{{end}}'"} )
+	ocCommands = append(ocCommands,[]string{"./oc", "get", "knativeserving/knative-serving" ,"-n", "knative-serving", "--template="+"'{{range .status.conditions}}{{printf \"%s=%s\" .type .status}}{{end}}'"} )
 	ocCommands = append(ocCommands,[]string{"./oc","get", "pods","--namespace","knative-eventing"} )
 	
 	for command := range ocCommands {
@@ -85,6 +114,7 @@ func knativeStatus(){
 		if err != nil {
 			log.Fatal(err)
 		}
+		fmt.Println("")
 	}
 }
 
@@ -107,7 +137,7 @@ to quickly create a Cobra application.`,
 			knativeServing()
 			fmt.Println("Installing Knative Eventing")
 			knativeEventing()
-			log.Println("Checking on knative Eventing and Serving download status")
+			log.Println("Checking on Knative Eventing and Serving download status")
 			knativeStatus()
 		}
 		

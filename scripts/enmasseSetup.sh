@@ -2,26 +2,28 @@
 
 ./oc new-project enmasse-infra
 
-./oc apply -f enmasse-0.30.2/install/bundles/enmasse
+./oc apply -n enmasse-infra -f enmasse-0.30.2/install/bundles/enmasse
 
-./oc apply -f enmasse-0.30.2/addressspaces.crd.yaml
+./oc apply -n enmasse-infra -f enmasse-0.30.2/install/components/example-plans
 
-./oc apply -f enmasse-0.30.2/install/components/example-plans
+./oc apply -n enmasse-infra -f enmasse-0.30.2/install/components/example-roles
 
-./oc apply -f enmasse-0.30.2/install/components/example-roles
+./oc apply -n enmasse-infra -f enmasse-0.30.2/install/components/example-authservices/standard-authservice.yaml
 
-./oc apply -f enmasse-0.30.2/install/components/example-authservices/standard-authservice.yaml
+./oc apply -n enmasse-infra -f enmasse-0.30.2/install/preview-bundles/iot
 
-./oc apply -f enmasse-0.30.2/install/preview-bundles/iot
+export CLUSTERIP=$(oc get svc -n openshift-ingress -o jsonpath='{.items[*].spec.clusterIP}')
 
-export CLUSTERIP = $(oc get svc -n openshift-ingress -o jsonpath='{.items[*].spec.clusterIP'})
+CLUSTER=$CLUSTERIP.nip.io enmasse-0.30.2/install/components/iot/examples/k8s-tls/create
 
-CLUSTER=$CLUSTERIP.nip.io install/components/iot/examples/k8s-tls/create
+./oc create -n enmasse-infra secret tls iot-mqtt-adapter-tls --key=enmasse-0.30.2/install/components/iot/examples/k8s-tls/build/iot-mqtt-adapter-key.pem --cert=enmasse-0.30.2/install/components/iot/examples/k8s-tls/build/iot-mqtt-adapter-fullchain.pem
 
-./oc create secret tls iot-mqtt-adapter-tls --key=install/components/iot/examples/k8s-tls/build/iot-mqtt-adapter-key.pem --cert=install/components/iot/examples/k8s-tls/build/iot-mqtt-adapter-fullchain.pem
+./oc apply -n enmasse-infra -f enmasse-0.30.2/install/components/iot/examples/infinispan/common
 
-./oc apply -f install/components/iot/examples/infinispan/common
+./oc apply -n enmasse-infra -f enmasse-0.30.2/install/components/iot/examples/infinispan/manual
 
-./oc apply -f install/components/iot/examples/infinispan/manual
+./oc apply -n enmasse-infra -f enmasse-0.30.2/install/components/iot/examples/iot-config.yaml
 
-./oc apply -f install/components/iot/examples/iot-config.yaml
+./oc new-project myapp
+
+./oc create -n my-app -f enmasse-0.30.2/install/components/iot/examples/iot-project-managed.yaml

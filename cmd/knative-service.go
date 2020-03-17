@@ -24,21 +24,51 @@ import (
 )
 
 var (
-	service = ""
+	status = false
+	logView = false
 )
 
-func eventDisplay() {
+func service(service string) {
 	
-	cmd := exec.Command("./oc","apply","-f","/scripts/event-display.yaml")
+	cmd := exec.Command("./oc","apply", "-n", "knative-eventing","-f","yamls/" + service + "Service.yaml")
 	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 }
+
+func serviceStatus() { 
+	
+	cmd := exec.Command("./oc","get","ksvc")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func logs(name string) {
+	
+	podName, err := exec.Command("./oc" ,"get", "pods", "--selector='serving.knative.dev/service'").Output()
+	if err != nil {
+		log.Fatal(err)
+	}	
+	
+	cmd := exec.Command("./oc", "logs", string(podName), "-c" ,"user-container", "--since=10m")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 // serviceCmd represents the service command
-var serviceCmd = &cobra.Command{
+var knative_serviceCmd = &cobra.Command{
 	Use:   "service",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
@@ -49,14 +79,19 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("service called")
-		if (service == "event-display") {
-			eventDisplay()
+		
+		if (status) {
+			serviceStatus()
+		}else if(logView){
+			logs(args[0])
+		}else{
+			service(args[0])
 		}
 	},
 }
 
 func init() {
-	knativeCmd.AddCommand(serviceCmd)
+	knativeCmd.AddCommand(knative_serviceCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -67,5 +102,7 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// serviceCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	serviceCmd.Flags().StringVarP(&service, "service", "s", "event-display", "Choose what knative service to apply")
+	knative_serviceCmd.Flags().BoolVarP(&status, "status", "S", false, "Show Status of the Service")
+	knative_serviceCmd.Flags().BoolVarP(&logView, "logView", "l", false, "Show logs of the Service")
+
 }

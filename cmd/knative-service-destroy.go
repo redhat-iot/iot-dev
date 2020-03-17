@@ -17,22 +17,25 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"github.com/spf13/cobra"
-	"os"
 	"log"
 )
 
-func enmasseDestroy () {
-	cmd := exec.Command("./scripts/enmasseDestroy.sh")
-			cmd.Stdout = os.Stdout
-			err := cmd.Run()
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
+func destroyService(service string){
+	cmd := exec.Command("./oc","delete", "-n", "knative-eventing","-f","yamls/"+ service +"Service.yaml")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+
 // destroyCmd represents the destroy command
-var enmasse_destroyCmd = &cobra.Command{
+var knative_service_destroyCmd = &cobra.Command{
 	Use:   "destroy",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
@@ -42,13 +45,13 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("destroy called")
-		enmasseDestroy()
+		fmt.Println("Knative service destroy called")
+		destroyService(args[0])
 	},
 }
 
 func init() {
-	enmasseCmd.AddCommand(enmasse_destroyCmd)
+	knative_serviceCmd.AddCommand(knative_service_destroyCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -59,5 +62,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// destroyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	
 }

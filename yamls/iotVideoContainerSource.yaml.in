@@ -1,0 +1,37 @@
+apiVersion: sources.eventing.knative.dev/v1alpha1
+kind: ContainerSource
+metadata:
+  name: iotcontainersource
+spec:
+  template:
+    spec:
+      containers:
+        - image: quay.io/astoycos/iotcontainersource:latest
+          name: iotcontaintersource
+          env:
+            - name: POD_NAME
+              value: "mypod"
+            - name: POD_NAMESPACE
+              value: "event-test"
+            - name: MESSAGE_URI
+              value : "${MESSAGE_URI}"
+            - name: MESSAGE_PORT
+              value : "${MESSAGE_PORT}"
+            - name: MESSAGE_TYPE
+              value: "telemetry"
+            - name: MESSAGE_TENANT
+              value: "myapp.iot"
+            - name: TLS_CONFIG
+              value: "1" # 0:no tls 1: tls insecue 2: tls secure
+            - name: TLS_CERT
+              value: "${TLS_CERT}"
+            - name: CLIENT_USERNAME
+              value: "consumer"
+            - name: CLIENT_PASSWORD
+              value: "foobar"
+            - name: K_SINK
+              value: "http://${IP}:8000/"
+  sink:
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    name: iotcam-display
