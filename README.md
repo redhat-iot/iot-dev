@@ -36,11 +36,11 @@ The `IoTCLI` can install and setup Knative on an Openshift cluster, deploy Knati
 
 #### Currently configured Knative Services 
    
-    `IoTCLI` 
+`IoTCLI` Service
 
 - Simply Drops incoming Cloud-Events into its log 
 
-    `iotVideo` 
+`iotVideo` Service 
 
 - Accepts an incoming IoT video Livestream, runs image classification using Tensorflow, and serves it back to the user via a simple web appliaction, its repo can be found [here](https://github.com/astoycos/iotKnativeSource) 
 
