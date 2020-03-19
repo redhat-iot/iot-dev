@@ -8,7 +8,7 @@ An functioning openshift 4.X cluster is required for this CLI's usage
 
 ## Getting Started 
 
-[Download a release](https://github.com/redhat-iot/iot-dev/releases), move the executable to your `$PATH`, clone and cd to the repo, and simply run the following command to get started  
+[Download a release](https://github.com/redhat-iot/iot-dev/releases), move the executable to your `$PATH`, clone and `cd` to the repo, and simply run the following command to get started  
 
 ```
 IoTCLI setup
