@@ -22,8 +22,9 @@ CLUSTER=$CLUSTERIP.nip.io enmasse-0.30.2/install/components/iot/examples/k8s-tls
 
 ./oc apply -n enmasse-infra -f enmasse-0.30.2/install/components/iot/examples/infinispan/manual
 
-./oc apply -n enmasse-infra -f enmasse-0.30.2/install/components/iot/examples/iot-config.yaml
+./oc apply -n enmasse-infra -f yamls/customIotConfig.yaml
+#enmasse-0.30.2/install/components/iot/examples/iot-config.yaml
 
 ./oc new-project myapp
 
-./oc create -n my-app -f enmasse-0.30.2/install/components/iot/examples/iot-project-managed.yaml
+./oc create -n myapp -f enmasse-0.30.2/install/components/iot/examples/iot-project-managed.yaml

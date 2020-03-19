@@ -81,7 +81,6 @@ to quickly create a Cobra application.`,
 		
 		iotContainerSource(args[0])
 		
-
 	},
 }
 

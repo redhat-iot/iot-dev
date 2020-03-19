@@ -121,6 +121,9 @@ func setup() {
 	downloadPkg("oc.tar.gz", ocUrl)
 	downloadPkg("enmasse.tgz",enmasseUrl)
 	
+	//Download Jq? For deleteing resources with locked finalizers 
+	
+
 	ocContent, err := os.Open("oc.tar.gz")
 	if err != nil {
 		log.Fatal(err)

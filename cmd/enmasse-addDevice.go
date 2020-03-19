@@ -19,61 +19,79 @@ import (
 	"fmt"
 	"log"
 	"github.com/spf13/cobra"
-	
+
 	"os/exec"
 	"net/http"
 	"bytes"
+	"crypto/tls"
+	"strings"
+
 )
 
 func device(tenant string, deviceID string){
-	
-	//Get device Registy 
+
+	//Get device Registy
 	registryHost , err := exec.Command("./oc" ,"-n", "enmasse-infra", "get" ,"routes", "device-registry", "--template={{ .spec.host }}").Output()
 	if err != nil {
 		log.Fatal("Error with getting registry host:", err)
 	}
-	
+
 	//Get token
 	token , err := exec.Command("./oc" ,"whoami", "--show-token").Output()
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
+	strtoken := strings.TrimSuffix(string(token), "\n")
 	//POST device
-	url := "https://" + string(registryHost) + "/v1/credentials/" + string(tenant) + "/" + string(deviceID)
-	var data = []byte(`{
-		"type": "hashed-password",
-		"auth-id": "sensor1",
-		"secrets": [{"pwd-plain":"'hono-secret'"}] 
-		}`)
+	urlDevice := "https://" + string(registryHost) + "/v1/devices/" + string(tenant) + "/" + string(deviceID)
+
+	urlCredentials := "https://" + string(registryHost) + "/v1/credentials/" + string(tenant) + "/" + string(deviceID)
 	
-	log.Println("Url: ",url)
-	addDevice, err := http.NewRequest(http.MethodPost, url,nil)
-	addCredendtials, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(data))
+	credentialsJSON := []byte(`[{
+			"type": "hashed-password",
+			"auth-id": "sensor1",
+			"secrets": [{
+				"pwd-plain":"hono-secret"
+			}]
+		}]`)
+	
+	
+	log.Println("Device Url:",urlDevice)
+	log.Println("Credentials Url:",urlCredentials)
+	log.Println("Payload:", string(bytes.TrimSpace(credentialsJSON)))
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+
+	addDevice, err := http.NewRequest("POST", urlDevice,nil)
+	addCredentials, err := http.NewRequest("PUT", urlCredentials, bytes.NewBuffer(bytes.TrimSpace(credentialsJSON)))
 	if err != nil {
 		// handle err
 	}
-	
+
 	addDevice.Header.Set("Content-Type", "application/json")
-	addDevice.Header.Set("Authorization", "Bearer " + string(token))
-	addCredendtials.Header.Set("Content-Type", "application/json")
-	addCredendtials.Header.Set("Authorization", "Bearer " + string(token))
+	addDevice.Header.Set("Authorization", "Bearer " + strtoken)
+	addCredentials.Header.Set("Content-Type", "application/json")
+	addCredentials.Header.Set("Authorization", "Bearer " + strtoken)
 
-
-
-	devResp, err := http.DefaultClient.Do(addDevice)
+	devResp, err := client.Do(addDevice)
 	if err != nil {
 		// handle err
+		log.Fatal("Http POST error: ", err)
 	}
 	log.Println("Device Post Response:", devResp)
-	
+	defer devResp.Body.Close()
 
-	creResp, err := http.DefaultClient.Do(addCredendtials)
+	creResp, err := client.Do(addCredentials)
 	if err != nil {
-		// handle err
+		log.Fatal("Http POST error: ", err)
 	}
+
 	log.Println("Credential Post Response:", creResp)
-	
+	defer creResp.Body.Close()
 }
 
 // addDeviceCmd represents the addDevice command
