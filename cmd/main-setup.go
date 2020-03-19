@@ -25,7 +25,8 @@ import (
 	"compress/gzip"
 	"path/filepath"
 	"log"
-	//"os/exec"
+	"os/exec"
+	"golang.org/x/crypto/ssh/terminal"
 	
 )
 
@@ -120,9 +121,6 @@ func Untar(dst string, r io.Reader) error {
 func setup() { 
 	downloadPkg("oc.tar.gz", ocUrl)
 	downloadPkg("enmasse.tgz",enmasseUrl)
-	
-	//Download Jq? For deleteing resources with locked finalizers 
-	
 
 	ocContent, err := os.Open("oc.tar.gz")
 	if err != nil {
@@ -144,6 +142,26 @@ func setup() {
 
 	os.Remove("oc.tar.gz")
 	os.Remove("enmasse.tgz")
+
+	//Login to OC 
+	fmt.Print("Enter Openshift Username: ")
+	var user string
+	fmt.Scanln(&user)
+
+	fmt.Print("Enter Openshift Password: ")
+	password, err := terminal.ReadPassword(0)
+	if err != nil{
+		log.Fatal(err)
+	}
+
+	fmt.Println()
+	
+	cmd := exec.Command("bash", "-c", "echo " + user + " " + string(password) + "| ./oc login")
+	cmd.Stdout = os.Stdout
+	err = cmd.Run()
+	if(err != nil){
+		log.Fatal(err)
+	}
 }
 
 // setupCmd represents the setup command

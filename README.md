@@ -11,8 +11,10 @@ An functioning openshift 4.X cluster is required for this CLI's usage
 [Download a release](https://github.com/redhat-iot/iot-dev/releases), move the executable to your `$PATH`, and simply run the following command to get started  
 
 ```
-IoTCLI setup --user=<Openshift admin Username> --password=<Openshift admin Password>
+IoTCLI setup
 ```
+It will prompt the user for their Openshift cluster credentials
+
 ## Setting up IoT Cloud Native Messaging 
 
 The user can chose to utilize Enmasse or Kafka for the middleware messaging layer
