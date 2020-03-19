@@ -7,8 +7,6 @@ before:
     # you may remove this if you don't need go generate
     - go generate ./...
 builds:
-- env:
-  - CGO_ENABLED=0
 - id: "IoTCLI"
 - binary: IoTCLI
 archives:
