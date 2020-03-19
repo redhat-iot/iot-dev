@@ -46,7 +46,7 @@ The `IoTCLI` can install and setup Knative on an Openshift cluster, deploy Knati
 
 #### Currently configured Knative Container Sources 
     
-    `iot` 
+ `iot` ContainerSource
     
 - AMQP-> CloudEvent broker to ferry messages from the application side of Enmasse to a Knative Service, its repo can be found [here](https://github.com/astoycos/iotContainerSource)
 
