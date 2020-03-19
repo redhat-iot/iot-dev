@@ -34,7 +34,8 @@ func enmasseSetup() {
 	
 	//install Enmasse
 	ocCommands = append(ocCommands,[]string{"bash","-c",". ./scripts/enmasseSetup.sh"} )
-	ocCommands = append(ocCommands,[]string{"./oc", "get", "-n", "myapp" ,"iotproject" ,"-o" ,"jsonpath={.items[*].status.isReady}"})
+	
+	//ocCommands = append(ocCommands,[]string{"./oc", "get", "-n", "myapp" ,"iotproject" ,"-o" ,"jsonpath={.items[*].status.isReady}"})
 	for command := range ocCommands {
 		cmd := exec.Command(ocCommands[command][0], ocCommands[command][1:]...)
 		cmd.Stdout = os.Stdout
