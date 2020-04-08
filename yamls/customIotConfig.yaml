@@ -1,7 +1,7 @@
 kind: IoTConfig
 apiVersion: iot.enmasse.io/v1alpha1
 metadata:
-  name: default
+  name: iotvideo
 spec:
   services:
     deviceRegistry:
