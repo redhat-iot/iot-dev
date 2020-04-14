@@ -16,14 +16,82 @@ limitations under the License.
 package cmd
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/spf13/cobra"
+
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/kubectl/pkg/cmd/apply"
+	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
+
+	"github.com/rwtodd/Go.Sed/sed"
 )
 
+func kafkaSetup() {
+
+	ocCommands := []string{}
+
+	//This section is mimicking the instructions to setup the Strimzi Operator, I.E download the install yaml, and set namespace
+	os.Mkdir("tmp/", 0755)
+
+	resp, err := http.Get("https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.17.0/strimzi-cluster-operator-0.17.0.yaml")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	engine, err := sed.New(strings.NewReader(`s/namespace: .*/namespace: kafka/`))
+	myOutput := new(bytes.Buffer)
+
+	myOutput.ReadFrom(engine.Wrap(resp.Body))
+
+	ioutil.WriteFile("tmp/strim.yaml", myOutput.Bytes(), 0755)
+
+	//End of Strimzi install section
+
+	//List of commands to install strimzi and then provision kafka
+	ocCommands = append(ocCommands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka-namespace.yaml")
+	ocCommands = append(ocCommands, "tmp/strim.yaml")
+	//ocCommands = append(ocCommands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka-rolebindings.yaml")
+	ocCommands = append(ocCommands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka.yaml")
+
+	//Load Config for Kubectl Wrapper Function
+	kubeConfigFlags := genericclioptions.NewConfigFlags(true)
+	matchVersionKubeConfigFlags := kcmdutil.NewMatchVersionFlags(kubeConfigFlags)
+
+	//Create a new Credential factory
+	f := kcmdutil.NewFactory(matchVersionKubeConfigFlags)
+
+	ioStreams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stdout}
+
+	//Make a new kubctl command
+	//cmd := apply.NewCmdApply("kubectl", f, ioStreams)
+	fmt.Println("running")
+	for _, command := range ocCommands {
+
+		cmd := apply.NewCmdApply("kubectl", f, ioStreams)
+
+		//cmd.Flags().Set("output", "json")
+		//cmd.Flags().Set("dry-run", "true")
+		cmd.Flags().Set("filename", command)
+		cmd.Flags().Set("namespace", "kafka")
+		cmd.Run(cmd, []string{})
+		//Allow Resources to stabilize
+		time.Sleep(10 * time.Second)
+	}
+}
+
 // setupCmd represents the setup command
-var kafka_setupCmd = &cobra.Command{
+var kafkaSetupCmd = &cobra.Command{
 	Use:   "setup",
-	Short: "A brief description of your command",
+	Short: "Setup Kafka with Strimzi Operator on a single Openshift namespace",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -31,12 +99,14 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("setup called")
+		fmt.Println("Kafka setup called")
+		kafkaSetup()
+
 	},
 }
 
 func init() {
-	kafkaCmd.AddCommand(kafka_setupCmd)
+	kafkaCmd.AddCommand(kafkaSetupCmd)
 
 	// Here you will define your flags and configuration settings.
 

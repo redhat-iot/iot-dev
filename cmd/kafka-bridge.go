@@ -49,11 +49,11 @@ func kafkaBridge() {
 	ioStreams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stdout}
 
 	//Make a new kubctl command
-	cmd := apply.NewCmdApply("kubectl", f, ioStreams)
+	//cmd := apply.NewCmdApply("kubectl", f, ioStreams)
 
 	//Setup the bridge
 	for _, command := range ocCommands {
-
+		cmd := apply.NewCmdApply("kubectl", f, ioStreams)
 		cmd.Flags().Set("filename", command)
 		cmd.Flags().Set("namespace", "kafka")
 		//cmd.Flags().Set("output", "json")
