@@ -32,9 +32,51 @@ import (
 	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
 
 	"github.com/rwtodd/Go.Sed/sed"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/tools/clientcmd/api"
 )
 
+//CommandOptions ...
+//Setup options for command
+//Eventually move this to its own package
+type CommandOptions struct {
+	configFlags *genericclioptions.ConfigFlags
+
+	newContext             *api.Context
+	newContextName         string
+	rawConfig              api.Config
+	commands               []string
+	userSpecifiedNamespace string
+
+	genericclioptions.IOStreams
+}
+
+func newCommandOptions() *CommandOptions {
+	return &CommandOptions{}
+}
+
+func isContextEqual(ctxA, ctxB *api.Context) bool {
+	if ctxA == nil || ctxB == nil {
+		return false
+	}
+	if ctxA.Cluster != ctxB.Cluster {
+		return false
+	}
+	if ctxA.Namespace != ctxB.Namespace {
+		return false
+	}
+	if ctxA.AuthInfo != ctxB.AuthInfo {
+		return false
+	}
+
+	return true
+}
+
+//func switchNamespaceContext()
+
 func kafkaSetup() {
+
+	co := newCommandOptions()
 
 	ocCommands := []string{}
 
@@ -62,30 +104,80 @@ func kafkaSetup() {
 	//ocCommands = append(ocCommands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka-rolebindings.yaml")
 	ocCommands = append(ocCommands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka.yaml")
 
+	co.commands = ocCommands
+
 	//Load Config for Kubectl Wrapper Function
-	kubeConfigFlags := genericclioptions.NewConfigFlags(true)
-	matchVersionKubeConfigFlags := kcmdutil.NewMatchVersionFlags(kubeConfigFlags)
+	co.configFlags = genericclioptions.NewConfigFlags(true)
+	co.userSpecifiedNamespace = "kafka"
+	//Create a new Credential factory from the kubeconfig file
+	f := kcmdutil.NewFactory(co.configFlags)
+	co.rawConfig, err = f.ToRawKubeConfigLoader().RawConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+	co.IOStreams = genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stdout}
 
-	//Create a new Credential factory
-	f := kcmdutil.NewFactory(matchVersionKubeConfigFlags)
+	currentContext, exists := co.rawConfig.Contexts[co.rawConfig.CurrentContext]
+	if !exists {
+		log.Fatal("Error no Context's avaliable")
+	}
+	co.newContext = api.NewContext()
 
-	ioStreams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stdout}
+	co.newContext.Cluster = currentContext.Cluster
+	co.newContext.AuthInfo = currentContext.AuthInfo
+	co.newContext.Namespace = co.userSpecifiedNamespace
+	contextName := co.userSpecifiedNamespace + "/" + currentContext.Cluster + "/" + strings.Split(currentContext.AuthInfo, "/")[0]
+	co.newContextName = contextName
 
+	configAccess := clientcmd.NewDefaultPathOptions()
+
+	if existingContext, exists := co.rawConfig.Contexts[co.newContextName]; !exists || !isContextEqual(co.newContext, existingContext) {
+		co.rawConfig.Contexts[co.newContextName] = co.newContext
+	}
+
+	co.rawConfig.CurrentContext = co.newContextName
+	clientcmd.ModifyConfig(configAccess, co.rawConfig, true)
+	//update current factory
+	//f.ToRawKubeConfigLoader().RawConfig() = co.rawConfig
+	log.Println("Context switched to: ", co.userSpecifiedNamespace)
 	//Make a new kubctl command
 	//cmd := apply.NewCmdApply("kubectl", f, ioStreams)
+
+	//reload configs after they have been altered
+	newconfigFlags := genericclioptions.NewConfigFlags(true)
+	matchVersionConfig := kcmdutil.NewMatchVersionFlags(newconfigFlags)
+	cf := kcmdutil.NewFactory(matchVersionConfig)
+
 	fmt.Println("running")
 	for _, command := range ocCommands {
+		cmd := apply.NewCmdApply("kubectl", cf, co.IOStreams)
 
-		cmd := apply.NewCmdApply("kubectl", f, ioStreams)
+		//commandgroup := templates.CommandGroup{}
+
+		//commandgroup.Commands[0] = cmd
+
+		//templates.UseOptionsTemplates(cmd)
+		//cmd.Flags.add("namespace")
+		//templates.ActsAsRootCommand(cmd, []string{}, commandgroup)
+		//fmt.Println(templater.optionsCmdFor)
 
 		//cmd.Flags().Set("output", "json")
 		//cmd.Flags().Set("dry-run", "true")
 		cmd.Flags().Set("filename", command)
-		cmd.Flags().Set("namespace", "kafka")
+		/*
+			err = cmd.Flags().Set("n", "kafka")
+			if err != nil {
+				log.Fatal(err)
+			}
+		*/
+		//.fmt.Println(cmd.Flags().Lookup("filename").Value.String())
+		//fmt.Println(cmd.Flags().Lookup("namespace").Value.String())
 		cmd.Run(cmd, []string{})
 		//Allow Resources to stabilize
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
+
+	os.RemoveAll("tmp/")
 }
 
 // setupCmd represents the setup command
