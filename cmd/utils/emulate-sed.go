@@ -9,7 +9,9 @@ import (
 	"github.com/rwtodd/Go.Sed/sed"
 )
 
-func emulateSed(command string, url string) *bytes.Buffer {
+//EmulateSed ...
+//Use this function to emulate the bash Sed command in golang
+func EmulateSed(command string, url string) *bytes.Buffer {
 
 	resp, err := http.Get(url)
 	if err != nil {

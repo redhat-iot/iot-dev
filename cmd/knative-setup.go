@@ -103,7 +103,7 @@ func knativeStatus(){
 	ocCommands := [][]string{}
 
 	ocCommands = append(ocCommands,[]string{"./oc","project"} )
-	ocCommands = append(ocCommands,[]string{"./oc", "get", "knativeserving/knative-serving" ,"-n", "knative-serving", "--template="+"'{{range .status.conditions}}{{printf \"%s=%s\" .type .status}}{{end}}'"} )
+	ocCommands = append(ocCommands,[]string{"./oc", "get", "knativeserving.operator.knative.dev/knative-serving" ,"-n", "knative-serving", "--template="+"'{{range .status.conditions}}{{printf \"%s=%s\" .type .status}}{{end}}'"} )
 	ocCommands = append(ocCommands,[]string{"./oc","get", "pods","--namespace","knative-eventing"} )
 	
 	for command := range ocCommands {

@@ -25,13 +25,15 @@ type CommandOptions struct {
 	newContext             *api.Context
 	newContextName         string
 	rawConfig              api.Config
-	commands               []string
+	Commands               []string
 	userSpecifiedNamespace string
 
-	genericclioptions.IOStreams
+	IOStreams genericclioptions.IOStreams
 }
 
-func newCommandOptions() *CommandOptions {
+//NewCommandOptions ...
+//Use this to make a new CommandOptions Struct
+func NewCommandOptions() *CommandOptions {
 	return &CommandOptions{}
 }
 
@@ -52,10 +54,12 @@ func isContextEqual(ctxA, ctxB *api.Context) bool {
 	return true
 }
 
-func (co *CommandOptions) switchContext(nameSpace string) {
+//SwitchContext ...
+//Use this function to Switch kubeconfig Contexts
+func (co *CommandOptions) SwitchContext(nameSpace string) {
 	//Load Config for Kubectl Wrapper Function
 	co.configFlags = genericclioptions.NewConfigFlags(true)
-	co.userSpecifiedNamespace = "kafka"
+	co.userSpecifiedNamespace = nameSpace
 	//Create a new Credential factory from the kubeconfig file
 	f := kcmdutil.NewFactory(co.configFlags)
 	co.rawConfig, _ = f.ToRawKubeConfigLoader().RawConfig()
@@ -84,6 +88,6 @@ func (co *CommandOptions) switchContext(nameSpace string) {
 	clientcmd.ModifyConfig(configAccess, co.rawConfig, true)
 	//update current factory
 	//f.ToRawKubeConfigLoader().RawConfig() = co.rawConfig
-	log.Println("Context switched to: ", co.userSpecifiedNamespace)
+	log.Println("Context switched to namespace:", co.userSpecifiedNamespace)
 
 }
