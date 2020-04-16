@@ -16,54 +16,53 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-	"os"
-
+	"github.com/IoTCLI/cmd/utils"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
 	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
+	"log"
+)
+
+var (
+	kafkaBridgeNamespaceFlag string
 )
 
 func kafkaBridge() {
 
-	ocCommands := []string{}
+	co := utils.NewCommandOptions()
 
 	//Setup kafka bridge
-	ocCommands = append(ocCommands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka-bridge.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka-bridge.yaml")
 	//Setup Nginix Ingress **CONVERT TO OPENSHIFT ROUTE AT SOME POINT** to connect to bridge from outside the cluster
 	//Get Nginix controller and apply to cluster
-	ocCommands = append(ocCommands, "https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/mandatory.yaml")
-	ocCommands = append(ocCommands, "https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/provider/cloud-generic.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/mandatory.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/provider/cloud-generic.yaml")
 	//Seutp the K8s ingress resource
 
-	ocCommands = append(ocCommands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ingress.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ingress.yaml")
 
-	//Load Config for Kubectl Wrapper Function
-	kubeConfigFlags := genericclioptions.NewConfigFlags(true)
-	matchVersionKubeConfigFlags := kcmdutil.NewMatchVersionFlags(kubeConfigFlags)
+	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
-	//Create a new Credential factory
-	f := kcmdutil.NewFactory(matchVersionKubeConfigFlags)
+	co.SwitchContext(kafkaBridgeNamespaceFlag)
 
-	ioStreams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stdout}
+	//Reload config flags after switching context
+	newconfigFlags := genericclioptions.NewConfigFlags(true)
+	matchVersionConfig := kcmdutil.NewMatchVersionFlags(newconfigFlags)
+	cf := kcmdutil.NewFactory(matchVersionConfig)
 
-	//Make a new kubctl command
-	//cmd := apply.NewCmdApply("kubectl", f, ioStreams)
-
-	//Setup the bridge
-	for _, command := range ocCommands {
-		cmd := apply.NewCmdApply("kubectl", f, ioStreams)
-		cmd.Flags().Set("filename", command)
-		cmd.Flags().Set("namespace", "kafka")
-		//cmd.Flags().Set("output", "json")
-		//cmd.Flags().Set("dry-run", "true")
+	log.Println("Provision Kafka Http Bridge")
+	for _, command := range co.Commands {
+		cmd := apply.NewCmdApply("kubectl", cf, IOStreams)
+		err := cmd.Flags().Set("filename", command)
+		if err != nil {
+			log.Fatal(err)
+		}
 		cmd.Run(cmd, []string{})
-
+		log.Print(out.String())
+		out.Reset()
 	}
-
-	//wait until pods are up
-
+	log.Println("To check status of Kafka HTTP bridge run 'curl -v GET http://my-bridge.io/healthy'")
 }
 
 // bridgeCmd represents the bridge command
@@ -77,7 +76,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("bridge called")
+		log.Println("Kafka Http Bridge called")
 		kafkaBridge()
 	},
 }
@@ -94,4 +93,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// bridgeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	kafkaBridgeCmd.Flags().StringVarP(&kafkaBridgeNamespaceFlag, "namespace", "n", "kafka", "Option to specify namespace for kafka deletion, defaults to 'kafka'")
 }

@@ -16,46 +16,50 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-	"os"
-
+	"github.com/IoTCLI/cmd/utils"
 	"github.com/spf13/cobra"
-
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/delete"
 	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
+	"log"
+)
+
+var (
+	kafkaDestroyNamespaceFlag string
 )
 
 func kafkaDestroy() {
 
-	ocCommands := []string{}
-	//Resources to delete
-	ocCommands = append(ocCommands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka.yaml")
-	ocCommands = append(ocCommands, "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.17.0/strimzi-cluster-operator-0.17.0.yaml")
-	ocCommands = append(ocCommands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka-namespace.yaml")
+	//Make command options for Kafka Setup
+	co := utils.NewCommandOptions()
 
-	//Load Config for Kubectl Wrapper Function
-	kubeConfigFlags := genericclioptions.NewConfigFlags(true)
-	matchVersionKubeConfigFlags := kcmdutil.NewMatchVersionFlags(kubeConfigFlags)
+	//Fill in the commands that must be applied to
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka.yaml")
+	co.Commands = append(co.Commands, "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.17.0/strimzi-cluster-operator-0.17.0.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka-namespace.yaml")
 
-	//Create a new Credential factory
-	f := kcmdutil.NewFactory(matchVersionKubeConfigFlags)
+	//
+	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
-	ioStreams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stdout}
+	co.SwitchContext(kafkaDestroyNamespaceFlag)
 
-	//Make a new kubctl command
-	cmd := delete.NewCmdDelete(f, ioStreams)
+	//Reload config flags after switching context
+	newconfigFlags := genericclioptions.NewConfigFlags(true)
+	matchVersionConfig := kcmdutil.NewMatchVersionFlags(newconfigFlags)
+	cf := kcmdutil.NewFactory(matchVersionConfig)
 
-	for _, command := range ocCommands {
-
-		cmd.Flags().Set("filename", command)
-		cmd.Flags().Set("namespace", "kafka")
-		//cmd.Flags().Set("output", "json")
-		//cmd.Flags().Set("dry-run", "true")
+	log.Println("Destroy Kafka from cluster")
+	for _, command := range co.Commands {
+		cmd := delete.NewCmdDelete(cf, IOStreams)
+		err := cmd.Flags().Set("filename", command)
+		if err != nil {
+			log.Fatal(err)
+		}
 		cmd.Run(cmd, []string{})
-
+		log.Print(out.String())
+		out.Reset()
 	}
-
+	//Remove tempfile when done
 }
 
 // destroyCmd represents the destroy command
@@ -69,7 +73,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("destroy called")
+		log.Println("Destroy called")
 		kafkaDestroy()
 	},
 }
@@ -86,4 +90,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// destroyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	kafkaDestroyCmd.Flags().StringVarP(&kafkaDestroyNamespaceFlag, "namespace", "n", "kafka", "Option to specify namespace for kafka deletion, defaults to 'kafka'")
 }

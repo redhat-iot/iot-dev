@@ -1,5 +1,5 @@
 /*
-Copyright © 2020 NAME HERE <EMAIL ADDRESS>
+Copyright © 2020 RedHat IoT
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,171 +13,77 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package cmd
 
 import (
-	"bytes"
-	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
-	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 
+	//in package import
+	"github.com/IoTCLI/cmd/utils"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
 	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
-
-	"github.com/rwtodd/Go.Sed/sed"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/tools/clientcmd/api"
 )
 
-//CommandOptions ...
-//Setup options for command
-//Eventually move this to its own package
-type CommandOptions struct {
-	configFlags *genericclioptions.ConfigFlags
-
-	newContext             *api.Context
-	newContextName         string
-	rawConfig              api.Config
-	commands               []string
-	userSpecifiedNamespace string
-
-	genericclioptions.IOStreams
-}
-
-func newCommandOptions() *CommandOptions {
-	return &CommandOptions{}
-}
-
-func isContextEqual(ctxA, ctxB *api.Context) bool {
-	if ctxA == nil || ctxB == nil {
-		return false
-	}
-	if ctxA.Cluster != ctxB.Cluster {
-		return false
-	}
-	if ctxA.Namespace != ctxB.Namespace {
-		return false
-	}
-	if ctxA.AuthInfo != ctxB.AuthInfo {
-		return false
-	}
-
-	return true
-}
-
-//func switchNamespaceContext()
+var (
+	kafkaSetupNamespaceFlag string
+)
 
 func kafkaSetup() {
+	//Make command options for Kafka Setup
+	co := utils.NewCommandOptions()
+	//This section is mimicking the instructions to setup the Strimzi Operator, I.E download the install yaml, and set namespace using sed
+	//functionality
 
-	co := newCommandOptions()
-
-	ocCommands := []string{}
-
-	//This section is mimicking the instructions to setup the Strimzi Operator, I.E download the install yaml, and set namespace
-	os.Mkdir("tmp/", 0755)
-
-	resp, err := http.Get("https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.17.0/strimzi-cluster-operator-0.17.0.yaml")
+	//Make A Temporary file to store output from Sed
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "strim-")
 	if err != nil {
+		log.Fatal("Cannot create temporary file", err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	myOutput := utils.EmulateSed(`s/namespace: .*/namespace: kafka/`, "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.17.0/strimzi-cluster-operator-0.17.0.yaml")
+
+	tmpFile.Write(myOutput.Bytes())
+
+	//Close Tempfile after writing
+	if err := tmpFile.Close(); err != nil {
 		log.Fatal(err)
 	}
-	defer resp.Body.Close()
 
-	engine, err := sed.New(strings.NewReader(`s/namespace: .*/namespace: kafka/`))
-	myOutput := new(bytes.Buffer)
+	//Fill in the commands that must be applied to
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka-namespace.yaml")
+	co.Commands = append(co.Commands, tmpFile.Name())
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka.yaml")
+	//
+	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
-	myOutput.ReadFrom(engine.Wrap(resp.Body))
+	co.SwitchContext(kafkaSetupNamespaceFlag)
 
-	ioutil.WriteFile("tmp/strim.yaml", myOutput.Bytes(), 0755)
-
-	//End of Strimzi install section
-
-	//List of commands to install strimzi and then provision kafka
-	ocCommands = append(ocCommands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka-namespace.yaml")
-	ocCommands = append(ocCommands, "tmp/strim.yaml")
-	//ocCommands = append(ocCommands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka-rolebindings.yaml")
-	ocCommands = append(ocCommands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka.yaml")
-
-	co.commands = ocCommands
-
-	//Load Config for Kubectl Wrapper Function
-	co.configFlags = genericclioptions.NewConfigFlags(true)
-	co.userSpecifiedNamespace = "kafka"
-	//Create a new Credential factory from the kubeconfig file
-	f := kcmdutil.NewFactory(co.configFlags)
-	co.rawConfig, err = f.ToRawKubeConfigLoader().RawConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
-	co.IOStreams = genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stdout}
-
-	currentContext, exists := co.rawConfig.Contexts[co.rawConfig.CurrentContext]
-	if !exists {
-		log.Fatal("Error no Context's avaliable")
-	}
-	co.newContext = api.NewContext()
-
-	co.newContext.Cluster = currentContext.Cluster
-	co.newContext.AuthInfo = currentContext.AuthInfo
-	co.newContext.Namespace = co.userSpecifiedNamespace
-	contextName := co.userSpecifiedNamespace + "/" + currentContext.Cluster + "/" + strings.Split(currentContext.AuthInfo, "/")[0]
-	co.newContextName = contextName
-
-	configAccess := clientcmd.NewDefaultPathOptions()
-
-	if existingContext, exists := co.rawConfig.Contexts[co.newContextName]; !exists || !isContextEqual(co.newContext, existingContext) {
-		co.rawConfig.Contexts[co.newContextName] = co.newContext
-	}
-
-	co.rawConfig.CurrentContext = co.newContextName
-	clientcmd.ModifyConfig(configAccess, co.rawConfig, true)
-	//update current factory
-	//f.ToRawKubeConfigLoader().RawConfig() = co.rawConfig
-	log.Println("Context switched to: ", co.userSpecifiedNamespace)
-	//Make a new kubctl command
-	//cmd := apply.NewCmdApply("kubectl", f, ioStreams)
-
-	//reload configs after they have been altered
+	//Reload config flags after switching context
 	newconfigFlags := genericclioptions.NewConfigFlags(true)
 	matchVersionConfig := kcmdutil.NewMatchVersionFlags(newconfigFlags)
 	cf := kcmdutil.NewFactory(matchVersionConfig)
 
-	fmt.Println("running")
-	for _, command := range ocCommands {
-		cmd := apply.NewCmdApply("kubectl", cf, co.IOStreams)
-
-		//commandgroup := templates.CommandGroup{}
-
-		//commandgroup.Commands[0] = cmd
-
-		//templates.UseOptionsTemplates(cmd)
-		//cmd.Flags.add("namespace")
-		//templates.ActsAsRootCommand(cmd, []string{}, commandgroup)
-		//fmt.Println(templater.optionsCmdFor)
-
-		//cmd.Flags().Set("output", "json")
-		//cmd.Flags().Set("dry-run", "true")
-		cmd.Flags().Set("filename", command)
-		/*
-			err = cmd.Flags().Set("n", "kafka")
-			if err != nil {
-				log.Fatal(err)
-			}
-		*/
-		//.fmt.Println(cmd.Flags().Lookup("filename").Value.String())
-		//fmt.Println(cmd.Flags().Lookup("namespace").Value.String())
+	log.Println("Provision Kafka")
+	for _, command := range co.Commands {
+		cmd := apply.NewCmdApply("kubectl", cf, IOStreams)
+		err := cmd.Flags().Set("filename", command)
+		if err != nil {
+			log.Fatal(err)
+		}
 		cmd.Run(cmd, []string{})
-		//Allow Resources to stabilize
-		time.Sleep(5 * time.Second)
+		log.Print(out.String())
+		out.Reset()
 	}
+	//Remove tempfile when done
 
-	os.RemoveAll("tmp/")
+	os.Remove(tmpFile.Name())
 }
 
 // setupCmd represents the setup command
@@ -191,7 +97,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Kafka setup called")
+		log.Println("Kafka setup called")
 		kafkaSetup()
 
 	},
@@ -208,5 +114,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// setupCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	kafkaSetupCmd.Flags().StringVarP(&kafkaSetupNamespaceFlag, "namespace", "n", "kafka", "Option to specify namespace for kafka deployment, defaults to 'kafka'")
 }
