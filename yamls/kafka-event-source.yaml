@@ -10,4 +10,4 @@ spec:
     ref:
       apiVersion: serving.knative.dev/v1
       kind: Service
-      name: video-service
+      name: event-display #video-service
