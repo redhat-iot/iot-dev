@@ -16,74 +16,90 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-	"os"
-	"github.com/spf13/cobra"
-	//"io"
+	//"io/ioutil"
 	"log"
+	//"os"
 	"os/exec"
-	"strconv"
-	
+
+	"github.com/spf13/cobra"
+
+	//in package import
+	"github.com/IoTCLI/cmd/utils"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+	//"k8s.io/kubectl/pkg/cmd/"
+	"k8s.io/kubectl/pkg/cmd/apply"
+	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
 )
 
-func enmasseSetup() { 
+var (
+	enmasseSetupNamespaceFlag string
+)
 
-	//Test you are correctly connected to openshift cluster
-	ocCommands := [][]string{}
+func enmasseSetup() {
 
-	
-	//install Enmasse
-	ocCommands = append(ocCommands,[]string{"bash","-c",". ./scripts/enmasseSetup.sh"} )
-	
-	//ocCommands = append(ocCommands,[]string{"./oc", "get", "-n", "myapp" ,"iotproject" ,"-o" ,"jsonpath={.items[*].status.isReady}"})
-	for command := range ocCommands {
-		cmd := exec.Command(ocCommands[command][0], ocCommands[command][1:]...)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err := cmd.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
+	//Make command options for Kafka Setup
+	co := utils.NewCommandOptions()
+	//download Enmasse v0.30.3
+	folderName := utils.DownloadAndUncompress("enmasse.tgz", "https://github.com/EnMasseProject/enmasse/releases/download/0.30.3/enmasse-0.30.3.tgz")
+	log.Println("Enmasse Source folder: ", folderName)
+
+	//If you want to deploy in a namespace besides enmasse-infra
+	//TODO still Test This
+	if enmasseSetupNamespaceFlag != "enmasse-infra" {
+
+		utils.LocalSed((`s/enmasse-infra/` + enmasseSetupNamespaceFlag + `/`), (folderName + "/install/bundles/enmasse/"))
+		utils.LocalSed((`s/enmasse-infra/` + enmasseSetupNamespaceFlag + `/`), (folderName + "/install/preview-bundles/iot/"))
+
 	}
+	//Fill ain the commands that must be applied to
+	//Install Enmasse Core
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/enmasse-infra-namespace.yaml")
+	co.Commands = append(co.Commands, folderName+"install/bundles/enmasse")
+	co.Commands = append(co.Commands, folderName+"install/components/example-plans")
+	co.Commands = append(co.Commands, folderName+"install/components/example-roles")
+	co.Commands = append(co.Commands, folderName+"install/components/example-authservices/standard-authservice.yaml")
+	co.Commands = append(co.Commands, folderName+"install/components/service-broker")
+	//co.Commands = append(co.Commands, folderName+"/install/components/cluster-service-broker")
+	//Install Enmasse IoT
+	co.Commands = append(co.Commands, folderName+"install/preview-bundles/iot")
 
-	//Wait to make iot-user until the IoTproject and IoT addressspace are ready 
-	var iotReady=false
-	var addrSpaceReady=false
-	for(!iotReady && !addrSpaceReady ){
-		
-		iot := exec.Command("./oc", "get", "-n", "myapp" ,"iotproject" ,"-o" ,"jsonpath={.items[*].status.isReady}")
-		iotin,err := iot.Output()
+	co.Commands = append(co.Commands, folderName+"install/components/iot/examples/infinispan/common")
+	co.Commands = append(co.Commands, folderName+"install/components/iot/examples/infinispan/manual")
+	co.Commands = append(co.Commands, folderName+"install/components/iot/examples/iot-config.yaml")
+	//
+	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
+
+	co.SwitchContext(enmasseSetupNamespaceFlag)
+
+	//Reload config flags after switching context
+	newconfigFlags := genericclioptions.NewConfigFlags(true)
+	matchVersionConfig := kcmdutil.NewMatchVersionFlags(newconfigFlags)
+	cf := kcmdutil.NewFactory(matchVersionConfig)
+
+	log.Println("Provision Enmasse Messaging Service")
+	for commandNumber, command := range co.Commands {
+		//Once IoT bundles are deployed get host IP to make certs for MQTT adapter
+		if commandNumber == 8 {
+			//Add ability to put custom IP here
+			err := exec.Command("./" + folderName + "/install/components/iot/examples/k8s-tls/create").Run()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		cmd := apply.NewCmdApply("kubectl", cf, IOStreams)
+		err := cmd.Flags().Set("filename", command)
 		if err != nil {
 			log.Fatal(err)
 		}
-		
-		addrSpace := exec.Command("./oc", "get", "-n", "myapp" ,"addressspace" ,"-o" ,"jsonpath={.items[*].status.isReady}")
-		addrSpacein, err := addrSpace.Output()
-		if err != nil {
-			log.Fatal(err)
-		}
-		
-		iotReady, _ = strconv.ParseBool(string(iotin))
-		addrSpaceReady, _ = strconv.ParseBool(string(addrSpacein))
-		
+		cmd.Run(cmd, []string{})
+		log.Print(out.String())
+		out.Reset()
 	}
-
-	log.Println("iotProject and iotAddressspace ready creating iot-user")
-
-	cmd := exec.Command("./oc", "create" ,"-f" ,"enmasse-0.30.2/install/components/iot/examples/iot-user.yaml")
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err := cmd.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
 
 }
 
-
-
 // setupCmd represents the setup command
-var enmasse_setupCmd = &cobra.Command{
+var enmasseSetupCmd = &cobra.Command{
 	Use:   "setup",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
@@ -93,13 +109,13 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("setup called")
+		log.Println("setup called")
 		enmasseSetup()
 	},
 }
 
 func init() {
-	enmasseCmd.AddCommand(enmasse_setupCmd)
+	enmasseCmd.AddCommand(enmasseSetupCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -110,4 +126,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// setupCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	enmasseSetupCmd.Flags().StringVarP(&enmasseSetupNamespaceFlag, "namespace", "n", "enmasse-infra", "Option to specify namespace for enmasse deployment, defaults to 'enmasse-infra'")
 }

@@ -16,38 +16,59 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
+	//"io/ioutil"
 	"log"
-	"github.com/spf13/cobra"
-
-	"os/exec"
-	"net/http"
+	//"os"
 	"bytes"
 	"crypto/tls"
+	"github.com/spf13/cobra"
+	"net/http"
 	"strings"
 
+	//in package import
+	"github.com/IoTCLI/cmd/utils"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+	//"k8s.io/kubectl/pkg/cmd/"
+	"k8s.io/kubectl/pkg/cmd/get"
+	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
 )
 
-func device(tenant string, deviceID string){
+func device(tenant string, deviceID string) {
+	//Make command options for Kafka Setup
+	co := utils.NewCommandOptions()
+	//This section is mimicking the instructions to setup the Strimzi Operator, I.E download the install yaml, and set namespace using sed
+	//functionality
 
-	//Get device Registy
-	registryHost , err := exec.Command("./oc" ,"-n", "enmasse-infra", "get" ,"routes", "device-registry", "--template={{ .spec.host }}").Output()
-	if err != nil {
-		log.Fatal("Error with getting registry host:", err)
-	}
+	//Fill in the commands that must be applied to
+	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
-	//Get token
-	token , err := exec.Command("./oc" ,"whoami", "--show-token").Output()
+	co.SwitchContext("enmasse-infra")
+
+	//Reload config flags after switching context
+	newconfigFlags := genericclioptions.NewConfigFlags(true)
+	matchVersionConfig := kcmdutil.NewMatchVersionFlags(newconfigFlags)
+	cf := kcmdutil.NewFactory(matchVersionConfig)
+
+	log.Println("Adding device with ID: " + deviceID + "to tenant: " + tenant)
+
+	cmd := get.NewCmdGet("kubectl", cf, IOStreams)
+	err := cmd.Flags().Set("template", "{{ .spec.host }}")
 	if err != nil {
 		log.Fatal(err)
 	}
+	cmd.Run(cmd, []string{"routes", "device-registry"})
+	log.Print("Registry Host is: ", out.String())
+	registryHost := out.String()
+	out.Reset()
+
+	token := co.GetUserToken()
 
 	strtoken := strings.TrimSuffix(string(token), "\n")
 	//POST device
 	urlDevice := "https://" + string(registryHost) + "/v1/devices/" + string(tenant) + "/" + string(deviceID)
 
 	urlCredentials := "https://" + string(registryHost) + "/v1/credentials/" + string(tenant) + "/" + string(deviceID)
-	
+
 	credentialsJSON := []byte(`[{
 			"type": "hashed-password",
 			"auth-id": "sensor1",
@@ -55,10 +76,9 @@ func device(tenant string, deviceID string){
 				"pwd-plain":"hono-secret"
 			}]
 		}]`)
-	
-	
-	log.Println("Device Url:",urlDevice)
-	log.Println("Credentials Url:",urlCredentials)
+
+	log.Println("Device Url:", urlDevice)
+	log.Println("Credentials Url:", urlCredentials)
 	log.Println("Payload:", string(bytes.TrimSpace(credentialsJSON)))
 
 	tr := &http.Transport{
@@ -66,16 +86,16 @@ func device(tenant string, deviceID string){
 	}
 	client := &http.Client{Transport: tr}
 
-	addDevice, err := http.NewRequest("POST", urlDevice,nil)
+	addDevice, err := http.NewRequest("POST", urlDevice, nil)
 	addCredentials, err := http.NewRequest("PUT", urlCredentials, bytes.NewBuffer(bytes.TrimSpace(credentialsJSON)))
 	if err != nil {
 		// handle err
 	}
 
 	addDevice.Header.Set("Content-Type", "application/json")
-	addDevice.Header.Set("Authorization", "Bearer " + strtoken)
+	addDevice.Header.Set("Authorization", "Bearer "+strtoken)
 	addCredentials.Header.Set("Content-Type", "application/json")
-	addCredentials.Header.Set("Authorization", "Bearer " + strtoken)
+	addCredentials.Header.Set("Authorization", "Bearer "+strtoken)
 
 	devResp, err := client.Do(addDevice)
 	if err != nil {
@@ -95,7 +115,7 @@ func device(tenant string, deviceID string){
 }
 
 // addDeviceCmd represents the addDevice command
-var enmasse_addDeviceCmd = &cobra.Command{
+var addDeviceCmd = &cobra.Command{
 	Use:   "addDevice",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
@@ -105,13 +125,13 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Enmasse addDevice called")
-		device(args[0] , args[1])
+		log.Println("Enmasse IoT addDevice called")
+		device(args[0], args[1])
 	},
 }
 
 func init() {
-	enmasseCmd.AddCommand(enmasse_addDeviceCmd)
+	enmasseIoTCmd.AddCommand(addDeviceCmd)
 
 	// Here you will define your flags and configuration settings.
 

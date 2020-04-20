@@ -17,25 +17,39 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
+	"golang.org/x/crypto/ssh/terminal"
 	"log"
 	"os"
 	"os/exec"
-
-	"github.com/spf13/cobra"
 )
 
-func enmasseDestroy() {
-	cmd := exec.Command("./scripts/enmasseDestroy.sh")
-	cmd.Stdout = os.Stdout
-	err := cmd.Run()
+func login() {
+	//Login to OC
+	fmt.Print("Enter Openshift Username: ")
+	var user string
+	fmt.Scanln(&user)
+
+	fmt.Print("Enter Openshift Password: ")
+	password, err := terminal.ReadPassword(0)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Println()
+
+	cmd := exec.Command("bash", "-c", "echo "+user+" "+string(password)+"| ./oc login")
+	cmd.Stdout = os.Stdout
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 
-// destroyCmd represents the destroy command
-var enmasseDestroyCmd = &cobra.Command{
-	Use:   "destroy",
+// loginCmd represents the login command
+var loginCmd = &cobra.Command{
+	Use:   "login",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -44,22 +58,21 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("destroy called")
-		enmasseDestroy()
+		log.Println("login called")
+		login()
 	},
 }
 
 func init() {
-	enmasseCmd.AddCommand(enmasseDestroyCmd)
+	rootCmd.AddCommand(loginCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// destroyCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// loginCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// destroyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
+	// loginCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -47,7 +47,7 @@ func kafkaSetup() {
 	}
 	defer os.Remove(tmpFile.Name())
 
-	myOutput := utils.EmulateSed(`s/namespace: .*/namespace: kafka/`, "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.17.0/strimzi-cluster-operator-0.17.0.yaml")
+	myOutput := utils.RemoteSed(`s/namespace: .*/namespace: kafka/`, "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.17.0/strimzi-cluster-operator-0.17.0.yaml")
 
 	tmpFile.Write(myOutput.Bytes())
 

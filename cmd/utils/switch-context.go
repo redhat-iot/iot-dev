@@ -12,6 +12,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
 
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
@@ -24,6 +25,7 @@ type CommandOptions struct {
 
 	newContext             *api.Context
 	newContextName         string
+	clientConfig           *rest.Config
 	rawConfig              api.Config
 	Commands               []string
 	userSpecifiedNamespace string
@@ -90,4 +92,13 @@ func (co *CommandOptions) SwitchContext(nameSpace string) {
 	//f.ToRawKubeConfigLoader().RawConfig() = co.rawConfig
 	log.Println("Context switched to namespace:", co.userSpecifiedNamespace)
 
+}
+
+//GetUserToken ...
+//Returns Token for current user
+func (co *CommandOptions) GetUserToken() string {
+	co.configFlags = genericclioptions.NewConfigFlags(true)
+	f := kcmdutil.NewFactory(co.configFlags)
+	co.clientConfig, _ = f.ToRESTConfig()
+	return (co.clientConfig.BearerToken)
 }
