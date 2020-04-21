@@ -1,0 +1,35 @@
+apiVersion: sources.eventing.knative.dev/v1alpha1
+kind: ContainerSource
+metadata:
+  name: iotcontainersource
+spec:
+  template:
+    spec:
+      containers:
+        - image: quay.io/astoycos/iotcontainersource:latest
+          name: enmassesource
+          env:
+            - name: POD_NAME
+              value: "mypod"
+            - name: POD_NAMESPACE
+              value: "event-test"
+            - name: MESSAGE_URI
+              value: "${MESSAGE_URI}"
+            - name: MESSAGE_PORT
+              value: "${MESSAGE_PORT}"
+            - name: MESSAGE_TYPE
+              value: "${MESSAGE_TYPE}"
+            - name: MESSAGE_TENANT
+              value: "${MESSAGE_TENANT}"
+            - name: TLS_CONFIG
+              value: "1"
+            - name: TLS_PATH
+              value: "${TLS_CERT}"
+            - name: CLIENT_USERNAME
+              value: "${CLIENT_USERNAME}"
+            - name: CLIENT_PASSWORD
+              value: "${CLIENT_PASSWORD}"
+  sink:
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    name: event-display

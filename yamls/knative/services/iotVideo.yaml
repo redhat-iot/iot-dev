@@ -1,0 +1,15 @@
+ 
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: iotcam-display
+spec:
+  template:
+    spec:
+      timeoutSeconds: 120
+      containers:
+        - image: quay.io/astoycos/iotknativesource:latest
+          env:
+          - name: PYTHONUNBUFFERED
+            value: "0"
+            
