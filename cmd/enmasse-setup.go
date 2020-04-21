@@ -28,7 +28,6 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	//"k8s.io/kubectl/pkg/cmd/"
 	"k8s.io/kubectl/pkg/cmd/apply"
-	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
 )
 
 var (
@@ -72,10 +71,6 @@ func enmasseSetup() {
 	co.SwitchContext(enmasseSetupNamespaceFlag)
 
 	//Reload config flags after switching context
-	newconfigFlags := genericclioptions.NewConfigFlags(true)
-	matchVersionConfig := kcmdutil.NewMatchVersionFlags(newconfigFlags)
-	cf := kcmdutil.NewFactory(matchVersionConfig)
-
 	log.Println("Provision Enmasse Messaging Service")
 	for commandNumber, command := range co.Commands {
 		//Once IoT bundles are deployed get host IP to make certs for MQTT adapter
@@ -86,7 +81,7 @@ func enmasseSetup() {
 				log.Fatal(err)
 			}
 		}
-		cmd := apply.NewCmdApply("kubectl", cf, IOStreams)
+		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
 		err := cmd.Flags().Set("filename", command)
 		if err != nil {
 			log.Fatal(err)

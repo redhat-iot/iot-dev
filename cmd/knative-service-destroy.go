@@ -13,29 +13,51 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package cmd
 
 import (
-	"fmt"
-	"os"
-	"os/exec"
-	"github.com/spf13/cobra"
 	"log"
+
+	"github.com/spf13/cobra"
+
+	//in package import
+	"github.com/IoTCLI/cmd/utils"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+	//"k8s.io/kubectl/pkg/cmd/"
+	"k8s.io/kubectl/pkg/cmd/delete"
 )
 
-func destroyService(service string){
-	cmd := exec.Command("./oc","delete", "-n", "knative-eventing","-f","yamls/"+ service +"Service.yaml")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		log.Fatal(err)
+var (
+	knativeServiceDestroyNamespaceFlag string
+)
+
+func destroyService(service string) {
+	//Make command options for Knative Setup
+	co := utils.NewCommandOptions()
+
+	//Install Openshift Serveless and  Knative Serving
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/knative/services/"+service+".yaml")
+	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
+
+	co.SwitchContext(knativeServiceDestroyNamespaceFlag)
+
+	log.Println("Delete Knative service: ", service)
+	for _, command := range co.Commands {
+		cmd := delete.NewCmdDelete(co.CurrentFactory, IOStreams)
+		err := cmd.Flags().Set("filename", command)
+		if err != nil {
+			log.Fatal(err)
+		}
+		cmd.Run(cmd, []string{})
+		log.Print(out.String())
+		out.Reset()
+		//Allow time for Operator to distribute to all namespaces
 	}
 }
 
-
 // destroyCmd represents the destroy command
-var knative_service_destroyCmd = &cobra.Command{
+var knativeServiceDestroyCmd = &cobra.Command{
 	Use:   "destroy",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
@@ -45,13 +67,13 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Knative service destroy called")
+		log.Println("Knative service destroy called")
 		destroyService(args[0])
 	},
 }
 
 func init() {
-	knative_serviceCmd.AddCommand(knative_service_destroyCmd)
+	knativeServiceCmd.AddCommand(knativeServiceDestroyCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -62,4 +84,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// destroyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	knativeServiceDestroyCmd.Flags().StringVarP(&knativeServiceDestroyNamespaceFlag, "namespace", "n", "knative-eventing", "Option to specify namespace for knative service deployment, defaults to 'knative-eventing'")
 }

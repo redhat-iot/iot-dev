@@ -29,7 +29,6 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
 	"k8s.io/kubectl/pkg/cmd/get"
-	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
 )
 
 var (
@@ -56,7 +55,11 @@ func createProject() {
 	}
 
 	if enmasseFolderName == "" {
-		log.Fatal("Enmasse Bundle isn't Downloaded")
+		log.Fatal("Enmasse Bundle isn't Downloaded, downloading now")
+		//download Enmasse v0.30.3
+		enmasseFolderName := utils.DownloadAndUncompress("enmasse.tgz", "https://github.com/EnMasseProject/enmasse/releases/download/0.30.3/enmasse-0.30.3.tgz")
+		log.Println("Enmasse Source folder: ", enmasseFolderName)
+
 	}
 
 	//Make command options for Kafka Setup
@@ -73,17 +76,13 @@ func createProject() {
 	co.SwitchContext(enmasseIoTProjectNamespaceFlag)
 
 	//Reload config flags after switching context
-	newconfigFlags := genericclioptions.NewConfigFlags(true)
-	matchVersionConfig := kcmdutil.NewMatchVersionFlags(newconfigFlags)
-	cf := kcmdutil.NewFactory(matchVersionConfig)
-
 	log.Println("Provision Enmasse Messaging Service")
 	for commandNumber, command := range co.Commands {
 		//Once IoT bundles are deployed get host IP to make certs for MQTT adapterz
 		if commandNumber == 2 {
 
 			for !iotReady && !addrSpaceReady {
-				cmd := get.NewCmdGet("kubectl", cf, IOStreams)
+				cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 				cmd.Flags().Set("output", "jsonpath={.items[*].status.isReady}")
 				if err != nil {
 					log.Fatal(err)
@@ -100,7 +99,7 @@ func createProject() {
 			}
 
 		}
-		cmd := apply.NewCmdApply("kubectl", cf, IOStreams)
+		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
 		err := cmd.Flags().Set("filename", command)
 		if err != nil {
 			log.Fatal(err)

@@ -16,49 +16,105 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-	"log"
-	"os/exec"
 	"github.com/spf13/cobra"
-	"os"
+	"log"
+
+	//in package import
+	"github.com/IoTCLI/cmd/utils"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+	//"k8s.io/kubectl/pkg/cmd/"
+	"k8s.io/kubectl/pkg/cmd/apply"
+	"k8s.io/kubectl/pkg/cmd/get"
 )
 
 var (
-	status = false
-	logView = false
+	status                      = false
+	logView                     = false
+	knativeServiceNamespaceFlag string
 )
 
 func service(service string) {
-	
-	cmd := exec.Command("./oc","apply", "-n", "knative-eventing","-f","yamls/" + service + "Service.yaml")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		log.Fatal(err)
+
+	//Make command options for Knative Setup
+	co := utils.NewCommandOptions()
+
+	//Install Openshift Serveless and  Knative Serving
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/knative/services/"+service+".yaml")
+	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
+
+	co.SwitchContext(knativeServiceNamespaceFlag)
+
+	log.Println("Provision Knative Service: ", service)
+	for _, command := range co.Commands {
+		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
+		err := cmd.Flags().Set("filename", command)
+		if err != nil {
+			log.Fatal(err)
+		}
+		cmd.Run(cmd, []string{})
+		log.Print(out.String())
+		out.Reset()
 	}
 
 }
 
-func serviceStatus() { 
-	
-	cmd := exec.Command("./oc","get","ksvc")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+func serviceStatus() {
+
+	//Make command options for Knative Setup
+	co := utils.NewCommandOptions()
+
+	//Install Openshift Serveless and  Knative Serving
+
+	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
+
+	co.SwitchContext(knativeServiceNamespaceFlag)
+
+	//Reload config flags after switching contex
+
+	log.Println("Get Knative Service Status")
+
+	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
+	cmd.Run(cmd, []string{"ksvc"})
+	log.Print(out.String())
+	out.Reset()
 }
 
+/*
 func logs(name string) {
-	
-	podName, err := exec.Command("./oc" ,"get", "pods", "--selector='serving.knative.dev/service'").Output()
+
+
+	//Make command options for Knative Setup
+	co := utils.NewCommandOptions()
+
+	//Install Openshift Serveless and  Knative Serving
+
+	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
+	co.Commands = append(co.Commands, "pods")
+
+	co.SwitchContext(knativeServiceNamespaceFlag)
+
+	//Reload config flags after switching context
+	newconfigFlags := genericclioptions.NewConfigFlags(true)
+	matchVersionConfig := kcmdutil.NewMatchVersionFlags(newconfigFlags)
+	cf := kcmdutil.NewFactory(matchVersionConfig)
+
+
+	log.Println("Get Knative Service Status")
+
+	cmd := get.NewCmdGet("kubectl", cf, IOStreams)
+	cmd.Flags().Set("selector", "serving.knative.dev/service")
+	cmd.Run(cmd, []string{})
+
+	log.Print(out.String())
+	out.Reset()
+
+
+	podName, err := exec.Command("./oc", "get", "pods", "--selector='serving.knative.dev/service'").Output()
 	if err != nil {
 		log.Fatal(err)
-	}	
-	
-	cmd := exec.Command("./oc", "logs", string(podName), "-c" ,"user-container", "--since=10m")
+	}
+
+	cmd := exec.Command("./oc", "logs", string(podName), "-c", "user-container", "--since=10m")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
@@ -66,9 +122,10 @@ func logs(name string) {
 		log.Fatal(err)
 	}
 }
+*/
 
 // serviceCmd represents the service command
-var knative_serviceCmd = &cobra.Command{
+var knativeServiceCmd = &cobra.Command{
 	Use:   "service",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
@@ -78,20 +135,20 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("service called")
-		
-		if (status) {
+		log.Println("Knative Service called")
+
+		if status {
 			serviceStatus()
-		}else if(logView){
-			logs(args[0])
-		}else{
+		} else if logView {
+			//logs(args[0])
+		} else {
 			service(args[0])
 		}
 	},
 }
 
 func init() {
-	knativeCmd.AddCommand(knative_serviceCmd)
+	knativeCmd.AddCommand(knativeServiceCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -102,7 +159,7 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// serviceCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	knative_serviceCmd.Flags().BoolVarP(&status, "status", "S", false, "Show Status of the Service")
-	knative_serviceCmd.Flags().BoolVarP(&logView, "logView", "l", false, "Show logs of the Service")
-
+	knativeServiceCmd.Flags().BoolVarP(&status, "status", "S", false, "Show Status of the Service")
+	knativeServiceCmd.Flags().BoolVarP(&logView, "logView", "l", false, "Show logs of the Service")
+	knativeServiceCmd.Flags().StringVarP(&knativeServiceNamespaceFlag, "namespace", "n", "knative-eventing", "Option to specify namespace for knative service deployment, defaults to 'knative-eventing'")
 }

@@ -20,7 +20,6 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
-	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
 	"log"
 )
 
@@ -33,27 +32,24 @@ func kafkaBridge() {
 	co := utils.NewCommandOptions()
 
 	//Setup kafka bridge
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka-bridge.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/kafka-bridge.yaml")
 	//Setup Nginix Ingress **CONVERT TO OPENSHIFT ROUTE AT SOME POINT** to connect to bridge from outside the cluster
 	//Get Nginix controller and apply to cluster
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/mandatory.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/provider/cloud-generic.yaml")
 	//Seutp the K8s ingress resource
 
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ingress.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/ingress.yaml")
 
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
 	co.SwitchContext(kafkaBridgeNamespaceFlag)
 
 	//Reload config flags after switching context
-	newconfigFlags := genericclioptions.NewConfigFlags(true)
-	matchVersionConfig := kcmdutil.NewMatchVersionFlags(newconfigFlags)
-	cf := kcmdutil.NewFactory(matchVersionConfig)
 
 	log.Println("Provision Kafka Http Bridge")
 	for _, command := range co.Commands {
-		cmd := apply.NewCmdApply("kubectl", cf, IOStreams)
+		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
 		err := cmd.Flags().Set("filename", command)
 		if err != nil {
 			log.Fatal(err)

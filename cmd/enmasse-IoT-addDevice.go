@@ -30,7 +30,6 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	//"k8s.io/kubectl/pkg/cmd/"
 	"k8s.io/kubectl/pkg/cmd/get"
-	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
 )
 
 func device(tenant string, deviceID string) {
@@ -44,14 +43,11 @@ func device(tenant string, deviceID string) {
 
 	co.SwitchContext("enmasse-infra")
 
-	//Reload config flags after switching context
-	newconfigFlags := genericclioptions.NewConfigFlags(true)
-	matchVersionConfig := kcmdutil.NewMatchVersionFlags(newconfigFlags)
-	cf := kcmdutil.NewFactory(matchVersionConfig)
+	//Reload config flags after switching contex
 
 	log.Println("Adding device with ID: " + deviceID + "to tenant: " + tenant)
 
-	cmd := get.NewCmdGet("kubectl", cf, IOStreams)
+	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 	err := cmd.Flags().Set("template", "{{ .spec.host }}")
 	if err != nil {
 		log.Fatal(err)

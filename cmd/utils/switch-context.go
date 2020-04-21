@@ -21,8 +21,8 @@ import (
 //Setup options for command
 //Eventually move this to its own package
 type CommandOptions struct {
-	configFlags *genericclioptions.ConfigFlags
-
+	configFlags            *kcmdutil.MatchVersionFlags
+	CurrentFactory         kcmdutil.Factory
 	newContext             *api.Context
 	newContextName         string
 	clientConfig           *rest.Config
@@ -36,7 +36,14 @@ type CommandOptions struct {
 //NewCommandOptions ...
 //Use this to make a new CommandOptions Struct
 func NewCommandOptions() *CommandOptions {
-	return &CommandOptions{}
+
+	newconfigFlags := genericclioptions.NewConfigFlags(true)
+	matchVersionConfig := kcmdutil.NewMatchVersionFlags(newconfigFlags)
+	return &CommandOptions{
+		configFlags: matchVersionConfig,
+
+		CurrentFactory: kcmdutil.NewFactory(matchVersionConfig),
+	}
 }
 
 func isContextEqual(ctxA, ctxB *api.Context) bool {
@@ -60,11 +67,9 @@ func isContextEqual(ctxA, ctxB *api.Context) bool {
 //Use this function to Switch kubeconfig Contexts
 func (co *CommandOptions) SwitchContext(nameSpace string) {
 	//Load Config for Kubectl Wrapper Function
-	co.configFlags = genericclioptions.NewConfigFlags(true)
 	co.userSpecifiedNamespace = nameSpace
 	//Create a new Credential factory from the kubeconfig file
-	f := kcmdutil.NewFactory(co.configFlags)
-	co.rawConfig, _ = f.ToRawKubeConfigLoader().RawConfig()
+	co.rawConfig, _ = co.CurrentFactory.ToRawKubeConfigLoader().RawConfig()
 
 	co.IOStreams = genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stdout}
 
@@ -89,7 +94,10 @@ func (co *CommandOptions) SwitchContext(nameSpace string) {
 	co.rawConfig.CurrentContext = co.newContextName
 	clientcmd.ModifyConfig(configAccess, co.rawConfig, true)
 	//update current factory
-	//f.ToRawKubeConfigLoader().RawConfig() = co.rawConfig
+	newconfigFlags := genericclioptions.NewConfigFlags(true)
+	co.configFlags = kcmdutil.NewMatchVersionFlags(newconfigFlags)
+	co.CurrentFactory = kcmdutil.NewFactory(co.configFlags)
+
 	log.Println("Context switched to namespace:", co.userSpecifiedNamespace)
 
 }
@@ -97,7 +105,8 @@ func (co *CommandOptions) SwitchContext(nameSpace string) {
 //GetUserToken ...
 //Returns Token for current user
 func (co *CommandOptions) GetUserToken() string {
-	co.configFlags = genericclioptions.NewConfigFlags(true)
+	newconfigFlags := genericclioptions.NewConfigFlags(true)
+	co.configFlags = kcmdutil.NewMatchVersionFlags(newconfigFlags)
 	f := kcmdutil.NewFactory(co.configFlags)
 	co.clientConfig, _ = f.ToRESTConfig()
 	return (co.clientConfig.BearerToken)

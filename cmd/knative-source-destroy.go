@@ -16,33 +16,42 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/IoTCLI/cmd/utils"
-	"github.com/spf13/cobra"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"k8s.io/kubectl/pkg/cmd/delete"
 	"log"
+	//"strconv"
+	//"strings"
+
+	"github.com/spf13/cobra"
+
+	//in package import
+	"github.com/IoTCLI/cmd/utils"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+	//"k8s.io/kubectl/pkg/cmd/"
+	"k8s.io/kubectl/pkg/cmd/delete"
 )
 
 var (
-	kafkaDestroyNamespaceFlag string
+	knativeSourceDestroyNamespaceFlag string
 )
 
-func kafkaDestroy() {
-
-	//Make command options for Kafka Setup
+func desContainerSource(source string) {
+	//Make command options for Removing Knative Source
 	co := utils.NewCommandOptions()
 
-	//Fill in the commands that must be applied to
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/kafka.yaml")
-	co.Commands = append(co.Commands, "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.17.0/strimzi-cluster-operator-0.17.0.yaml")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka-namespace.yaml")
+	//Custom source configs
 
-	//
+	switch source {
+	case "kafka":
+		co.Commands = append(co.Commands, "https://storage.googleapis.com/knative-releases/eventing-contrib/latest/kafka-source.yaml")
+	default:
+		co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/knative/sources/"+source+".yaml")
+	}
+
+	//Install Openshift Serveless and  Knative Serving
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
-	co.SwitchContext(kafkaDestroyNamespaceFlag)
+	co.SwitchContext(knativeSourceDestroyNamespaceFlag)
 
-	log.Println("Destroy Kafka from cluster")
+	log.Println("Remove Knative Source: ", source)
 	for _, command := range co.Commands {
 		cmd := delete.NewCmdDelete(co.CurrentFactory, IOStreams)
 		err := cmd.Flags().Set("filename", command)
@@ -53,11 +62,10 @@ func kafkaDestroy() {
 		log.Print(out.String())
 		out.Reset()
 	}
-	//Remove tempfile when done
 }
 
 // destroyCmd represents the destroy command
-var kafkaDestroyCmd = &cobra.Command{
+var knativeSourceDestroyCmd = &cobra.Command{
 	Use:   "destroy",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
@@ -67,13 +75,13 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("Destroy called")
-		kafkaDestroy()
+		log.Println("Knatice destroy Containersource called")
+		desContainerSource(args[0])
 	},
 }
 
 func init() {
-	kafkaCmd.AddCommand(kafkaDestroyCmd)
+	knativeSourceCmd.AddCommand(knativeSourceDestroyCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -84,5 +92,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// destroyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	kafkaDestroyCmd.Flags().StringVarP(&kafkaDestroyNamespaceFlag, "namespace", "n", "kafka", "Option to specify namespace for kafka deletion, defaults to 'kafka'")
+	knativeSourceDestroyCmd.Flags().StringVarP(&knativeSourceDestroyNamespaceFlag, "namespace", "n", "knative-eventing", "Option to specify namespace for knative service deployment, defaults to 'knative-eventing'")
 }

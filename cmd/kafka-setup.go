@@ -27,7 +27,6 @@ import (
 	"github.com/IoTCLI/cmd/utils"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
-	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
 )
 
 var (
@@ -57,22 +56,17 @@ func kafkaSetup() {
 	}
 
 	//Fill in the commands that must be applied to
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka-namespace.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/kafka-namespace.yaml")
 	co.Commands = append(co.Commands, tmpFile.Name())
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/kafka.yaml")
 	//
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
 	co.SwitchContext(kafkaSetupNamespaceFlag)
 
-	//Reload config flags after switching context
-	newconfigFlags := genericclioptions.NewConfigFlags(true)
-	matchVersionConfig := kcmdutil.NewMatchVersionFlags(newconfigFlags)
-	cf := kcmdutil.NewFactory(matchVersionConfig)
-
 	log.Println("Provision Kafka")
 	for _, command := range co.Commands {
-		cmd := apply.NewCmdApply("kubectl", cf, IOStreams)
+		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
 		err := cmd.Flags().Set("filename", command)
 		if err != nil {
 			log.Fatal(err)

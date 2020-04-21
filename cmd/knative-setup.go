@@ -28,15 +28,13 @@ import (
 	//"k8s.io/kubectl/pkg/cmd/"
 	"k8s.io/kubectl/pkg/cmd/apply"
 	"k8s.io/kubectl/pkg/cmd/get"
-	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
-
 	"time"
 )
 
 //var setupStatus = false
 
 func knativeServing() {
-	//Make command options for Kafka Setup
+	//Make command options for Knative Setup
 	co := utils.NewCommandOptions()
 
 	//Install Openshift Serveless and  Knative Serving
@@ -47,14 +45,9 @@ func knativeServing() {
 
 	co.SwitchContext("knative-serving")
 
-	//Reload config flags after switching context
-	newconfigFlags := genericclioptions.NewConfigFlags(true)
-	matchVersionConfig := kcmdutil.NewMatchVersionFlags(newconfigFlags)
-	cf := kcmdutil.NewFactory(matchVersionConfig)
-
 	log.Println("Provision Openshift Serverless Operator and Knative Serving")
 	for commandNumber, command := range co.Commands {
-		cmd := apply.NewCmdApply("kubectl", cf, IOStreams)
+		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
 		err := cmd.Flags().Set("filename", command)
 		if err != nil {
 			log.Fatal(err)
@@ -76,7 +69,7 @@ func knativeServing() {
 
 	for !deployments && !install && !ready && !dependencies {
 
-		cmd := get.NewCmdGet("kubectl", cf, IOStreams)
+		cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 		err := cmd.Flags().Set("output", "jsonpath={.status.conditions}")
 		if err != nil {
 			log.Fatal(err)
@@ -116,15 +109,10 @@ func knativeEventing() {
 
 	co.SwitchContext("knative-eventing")
 
-	//Reload config flags after switching context
-	newconfigFlags := genericclioptions.NewConfigFlags(true)
-	matchVersionConfig := kcmdutil.NewMatchVersionFlags(newconfigFlags)
-	cf := kcmdutil.NewFactory(matchVersionConfig)
-
 	log.Println("Provision Knative Eventing")
 	for commandNumber, command := range co.Commands {
 
-		cmd := apply.NewCmdApply("kubectl", cf, IOStreams)
+		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
 		if commandNumber == 0 {
 			cmd.Flags().Set("selector", "knative.dev/crd-install")
 		}
@@ -151,12 +139,7 @@ func knativeStatus() {
 
 	co.SwitchContext("knative-serving")
 
-	//Reload config flags after switching context
-	newconfigFlags := genericclioptions.NewConfigFlags(true)
-	matchVersionConfig := kcmdutil.NewMatchVersionFlags(newconfigFlags)
-	cf := kcmdutil.NewFactory(matchVersionConfig)
-
-	cmd := get.NewCmdGet("kubectl", cf, IOStreams)
+	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 	cmd.Flags().Set("template", "'{{range .status.conditions}}{{printf \"%s=%s\" .type .status}}{{end}}'")
 	cmd.Run(cmd, []string{co.Commands[0]})
 	log.Print(out.String())
@@ -164,12 +147,7 @@ func knativeStatus() {
 
 	co.SwitchContext("knative-eventing")
 
-	//Reload config flags after switching context
-	newconfigFlags = genericclioptions.NewConfigFlags(true)
-	matchVersionConfig = kcmdutil.NewMatchVersionFlags(newconfigFlags)
-	cf = kcmdutil.NewFactory(matchVersionConfig)
-
-	cmd = get.NewCmdGet("kubectl", cf, IOStreams)
+	cmd = get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 	cmd.Run(cmd, []string{co.Commands[1]})
 	log.Print(out.String())
 	out.Reset()
