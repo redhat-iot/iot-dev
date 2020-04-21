@@ -1,7 +1,0 @@
-apiVersion: enmasse.io/v1beta2
-kind: AddressSpace
-metadata:
-        name: iot
-spec:
-  type: standard
-  plan: standard-unlimited
