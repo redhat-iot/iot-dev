@@ -1,52 +1,89 @@
-
-## Setting up Clound Native application tools
+# Setting up Clound Native Edge systems with the IoTCLI
 
 The user can choose which tools they want to use in order to either digest, display or process the IoT data. Eventually the user will be allowed to create custom data pipelines to connect the tools. Currently the following tools will be supported 
 
-### Knative 
+## Messaging Core 
+
+In any Edge system that incorporates IoT devices, having a scalable cloud native edge system is very important.  With the `IoTCLI` you can easily deploy these messaging services to your Openshift 4.X cluster
+    
+## Enmasse 
+
+[Enmasse](enmasse.io) is an open source project for managed, self-service messaging on Kubernetes. 
+
+The IoTCLI makes it easy to deploy the system along with its [IoT services](https://enmasse.io/documentation/0.31.0/openshift/#iot-guide-messaging-iot) onto an openshift Cluster 
+
+## Kafka 
+
+[Apache Kafka](https://kafka.apache.org/intro) is an advanced distributed streaming platform. It is deployed to your Openshift cluster using the [Strimzi operator](https://strimzi.io/)
+
+## Application Core
+
+Once IoT devices are streaming or pinging data from the edge developers need a way to process the data either on the Edge or back in the central cloud cloud 
+
+### In-Cloud
+
+#### Knative 
 
 The `IoTCLI` can install and setup Knative on an Openshift cluster, deploy Knative Services, and Container Sources 
 
-#### Currently configured Knative Services 
+##### Currently configured Knative Services 
    
-`IoTCLI` Service
+`event-display`
 
 - Simply Drops incoming Cloud-Events into its log 
 
-`iotVideo` Service 
+`iotVideo` 
 
-- Accepts an incoming IoT video Livestream, runs image classification using Tensorflow, and serves it back to the user via a simple web appliaction, its repo can be found [here](https://github.com/astoycos/iotKnativeSource) 
+- Accepts an incoming IoT video Livestream as HLS Playlist File(`.m3u8`), runs image classification using Tensorflow, and serves it back to the user via a simple web appliaction, its repo can be found [here](https://github.com/astoycos/iotKnativeSource) 
 
-#### Currently configured Knative Container Sources 
+`video` 
+
+- Accepts a video livestream in form of an HLS Playlist file delivered via a JSON structured to work with kafka. Sends video to Tensorflow serving module for inference, and sends inferenced video segments ceph object storage for eventual serving.  Part of [2020 Summit Demo](https://github.com/redhat-iot/2020Summit-IoT-Streaming-Demo)
+
+`video-serving`
+
+- Serves analyzed live video from ceph to user via a simple flask web app. Part of [2020 Summit Demo](https://github.com/redhat-iot/2020Summit-IoT-Streaming-Demo)
+
+#### Currently configured Knative Sources 
     
- `iot` ContainerSource
+ `iot` 
     
 - AMQP-> CloudEvent broker to ferry messages from the application side of Enmasse to a Knative Service, its repo can be found [here](https://github.com/astoycos/iotContainerSource)
 
-### Kafka
-    TODO 
+`kafka` 
 
-### OpenDataHub 
+- KafkaJSON -> Cloud Event broker to ferry video playlist files from Kafka to Knative 
+
+#### Persistent Storage 
+
+Persistent storage is implemented using [Ceph Object Storage](https://ceph.io/ceph-storage/object-storage/) deployed via the [Rook Operator](https://rook.io/)
+
+### On Edge 
+
+#### Gstreamer
+    Gstreamer AI plugin to run analytics on low resource devices @Aditya
+
+#### TensorFlow lite 
+
     TODO
 
 
-### Persistent Storage (Most likely Ceph)
-    TODO 
     
 ## Command Reference 
 
-| Command1  | Command2(Module) | Command3(Module command) | Argument (module input)            | Flags               | Function                                                                                                                                      |
-|-----------|------------------|--------------------------|------------------------------------|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
-| setup     | None             | None                     | None                               | None                | Download required files and binaries for all available tools                                                                                  |
-| enmasse   | setup            | None                     | None                               | None                | Setup Enmasse Setup IoT services                                                                                                              |
-| enmasse   | destroy          | None                     | None                               | None                | Remove Enmasse from openshift  cluster                                                                                                        |
-| enmasse   | addDevice        | None                     | <Messaging Tenant> <DeviceID>      | None                | Add a Device with specified ID to the Enmasse device registry for a specified messaging TenantSetup default Credentials                       |
-| knative   | setup            | None                     | None                               | --status=true/false | Setup Knative serverless on openshift clusterConfigures Knative-Eventing and  Knative-ServingSet --status=true to check on Knative deployment |
-| knative   | destroy          | None                     | None                               | None                | Remove Knative deployment from openshift cluster                                                                                              |
-| knative   | service          | None                     | <Knative service to be deployed>   | --status=true/false | Deploy a knative service Set --status=true to check on Knative service deployment                                                             |
-| knative   | service          | destroy                  | <Knative service to be destroyed>  | None                | Remove a specified Knative service from the cluster                                                                                           |
-| knative   | cs               |                          | <containersource to be deployed>   | None                | Deploy a Knative ContainerSource                                                                                                              |
-| Knative   | cs               | destroy                  | <containersource to be destroyed>  | None                | Remove a specified containersource from the cluster                                                                                           |
-| kafka     | setup            | None                     | None                               | --namespace         | Setup Kafka with Strimzi                                                                                                                      |
-| Kafka     | destroy          | None                     | None                               | --namespace         | Remove Kafka from Cluster                                                                                                                     |
-| Kafka     | Bridge           | None                     | None                               | --namespace         | Setup HTTP Kafka bridge                                                                                                                       |
+| Command1 (Tool) | Command2(Module) | Command3(Module command) | Argument (module input)            | Flags                          | Function                                                                                                                                           |
+|-----------------|------------------|--------------------------|------------------------------------|--------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| ceph            | setup            | None                     | None                               | None                           | Setup Ceph Object Storage via the Rook Operator                                                                                                    |
+| enmasse         | destroy          | None                     | None                               | None                           | Remove Enmasse from openshift  cluster                                                                                                             |
+| enmasse         | IoT              | addDevice                | <Messaging Tenant>  <DeviceID>     | None                           | Add a Device with specified ID to the Enmasse device registry for a specified messaging TenantSetup default Credentials                            |
+| enmasse         | IoT              | project                  | None                               | --namespace                    | Make a new enmasse IoT project in the specified namespace, defaults to “myapp”                                                                     |
+| enmasse         | setup            | None                     | None                               | None                           | Download Enmasse Source, store in current directory. Setup Enmasse Setup IoT services                                                              |
+| kafka           | bridge           | None                     | None                               | --namespace                    | Deploy kafka HTTP bridge Deploy nginx ingress to access bridge from outside the cluster (will be transitioned to a route)                          |
+| kafka           | destroy          | None                     | None                               | --namespace                    | Destroy the kafka deployment located at the specified namespace                                                                                    |
+| kafka           | setup            | None                     | None                               | --namespace                    | Setup a kafka cluster viat the strimzi operator at the specified namespace                                                                         |
+| knative         | setup            | None                     | None                               | --status=true/false            | Setup Knative serverless on openshift clusterConfigures both Knative-Eventing and  Knative-ServingSet --status=true to check on Knative deployment |
+| knative         | destroy          | None                     | None                               | None                           | Remove Knative deployment from openshift cluster                                                                                                   |
+| knative         | service          | None                     | <Knative service to be deployed>   | --status=true/false--namespace | Deploy a knative service Set --status=true to check on Knative service deploymentDefault namespace is “knative-eventing”                           |
+| knative         | service          | destroy                  | <Knative service to be destroyed>  | --namespace                    | Remove a specified Knative service from the cluster at specified namespace Default namespace is “knative-eventing”                                 |
+| knative         | source           | None                     | <containersource to be deployed>   | --namespace                    | Deploy a Knative Source at specified namespace Defaults to namespace “knative-eventing”                                                            |
+| knative         | source           | destroy                  | <containersource to be destroyed>  | --namespace                    | Remove a specified knative source from the cluster from specified namespaceDefault namespace is “knative-eventing”                                 |
