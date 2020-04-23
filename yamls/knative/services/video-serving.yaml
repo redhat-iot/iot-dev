@@ -8,4 +8,10 @@ spec:
       timeoutSeconds: 120
       containers:
         - image: quay.io/astoycos/serving-display:latest
-          
+          env: 
+          - name: CEPH_ENDPOINT
+            value: 'http://ceph-route-rook-ceph.apps.astoycos-ocp.shiftstack.com'
+          - name: S3_ID
+            value: '87KR4A1W77FA02MOW9MQ' 
+          - name: S3_SECRET_KEY
+            value: 'wC9TuE9AK6INqEiUNvSVKDMwvab1AQgsUTE7rAU2'

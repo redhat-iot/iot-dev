@@ -10,3 +10,12 @@ spec:
         - image: quay.io/astoycos/kafka-knative-source:latest
           ports:
             - containerPort: 8000
+          env: 
+          - name: CEPH_ENDPOINT
+            value: ''
+          - name: S3_ID
+            value: '' 
+          - name: S3_SECRET_KEY
+            value: ''
+          - name: TF_URL
+            value: 'http://${IP}:8501/v1/models/ssdlite_mobilenet_v2_coco_2018_05_09:predict'
