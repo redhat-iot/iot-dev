@@ -1,14 +1,14 @@
 # Setting up Clound Native Edge systems with the IoTCLI
 
-The user can choose which tools they want to use in order to either digest, display or process the IoT data. Eventually the user will be allowed to create custom data pipelines to connect the tools. Currently the following tools will be supported 
+The user can choose which tools they want to use in order to either digest, display or process the IoT data. Eventually the user will be allowed to create custom data pipelines to connect the tools. Currently the following tools/commands are supported 
 
 ## Getting Started 
 
 Download the latest Release from the [release page](https://github.com/redhat-iot/iot-dev/releases)
 
-Move the Executable `IoTCLI` into your `$PATH`
+Move the Binary `IoTCLI` into your `$PATH`
 
-Run `IoTCLI` login to authenticate with your openshift cluster 
+Run `IoTCLI login` to authenticate with your Openshift cluster 
 
 # Main Components Overview
 
@@ -16,13 +16,13 @@ Run `IoTCLI` login to authenticate with your openshift cluster
 
 In any Edge system that incorporates IoT devices, having a scalable cloud native edge system is very important.  With the `IoTCLI` you can easily deploy these messaging services to your Openshift 4.X cluster
     
-## Enmasse 
+### Enmasse 
 
 [Enmasse](enmasse.io) is an open source project for managed, self-service messaging on Kubernetes. 
 
 The IoTCLI makes it easy to deploy the system along with its [IoT services](https://enmasse.io/documentation/0.31.0/openshift/#iot-guide-messaging-iot) onto an openshift Cluster 
 
-## Kafka 
+### Kafka 
 
 [Apache Kafka](https://kafka.apache.org/intro) is an advanced distributed streaming platform. It is deployed to your Openshift cluster using the [Strimzi operator](https://strimzi.io/)
 
@@ -46,7 +46,7 @@ The `IoTCLI` can install and setup Knative on an Openshift cluster, deploy Knati
 
 - Accepts an incoming IoT video Livestream as HLS Playlist File(`.m3u8`), runs image classification using Tensorflow, and serves it back to the user via a simple web appliaction, its repo can be found [here](https://github.com/astoycos/iotKnativeSource) 
 
-`video` 
+`video-analytics` 
 
 - Accepts a video livestream in form of an HLS Playlist file delivered via a JSON structured to work with kafka. Sends video to Tensorflow serving module for inference, and sends inferenced video segments ceph object storage for eventual serving.  Part of [2020 Summit Demo](https://github.com/redhat-iot/2020Summit-IoT-Streaming-Demo)
 
@@ -76,6 +76,7 @@ Persistent storage is implemented using [Ceph Object Storage](https://ceph.io/ce
 #### TensorFlow lite 
 
     TODO
+
     
 ## Command Reference 
 
