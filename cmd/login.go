@@ -28,8 +28,8 @@ import (
 func login() {
 
 	//download Enmasse v0.30.3
-	folderName := utils.DownloadAndUncompress("oc.gz", "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz")
-	log.Println("oc Source folder: ", folderName)
+	_ = utils.DownloadAndUncompress("oc.gz", "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz")
+	log.Println("oc Source folder: ", "oc")
 	//Login to OC
 	fmt.Print("Enter Openshift Username: ")
 	var user string
@@ -43,12 +43,13 @@ func login() {
 
 	fmt.Println()
 
-	cmd := exec.Command("bash", "-c", "echo "+user+" "+string(password)+"| ./"+folderName+" login")
+	cmd := exec.Command("bash", "-c", "echo "+user+" "+string(password)+"| ./oc login")
 	cmd.Stdout = os.Stdout
 	err = cmd.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
+	os.Remove("oc")
 
 }
 

@@ -46,7 +46,9 @@ func kafkaSetup() {
 	}
 	defer os.Remove(tmpFile.Name())
 
-	myOutput := utils.RemoteSed(`s/namespace: .*/namespace: kafka/`, "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.17.0/strimzi-cluster-operator-0.17.0.yaml")
+	sedCommands := []string{`s/namespace: .*/namespace: kafka/`}
+
+	myOutput := utils.RemoteSed(sedCommands, "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.17.0/strimzi-cluster-operator-0.17.0.yaml")
 
 	tmpFile.Write(myOutput.Bytes())
 
@@ -56,9 +58,9 @@ func kafkaSetup() {
 	}
 
 	//Fill in the commands that must be applied to
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/kafka-namespace.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/setup/kafka-namespace.yaml")
 	co.Commands = append(co.Commands, tmpFile.Name())
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/kafka.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/setup/kafka.yaml")
 	//
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 

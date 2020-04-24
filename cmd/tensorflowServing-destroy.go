@@ -16,46 +16,41 @@ limitations under the License.
 package cmd
 
 import (
-	"log"
-	//"os"
-
-	"github.com/spf13/cobra"
-
 	"github.com/IoTCLI/cmd/utils"
+	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/delete"
+	"log"
 )
 
-func enmasseDestroy() {
+func tensorflowServingDestroy() {
 
-	//Make command options for Kafka Setup
 	co := utils.NewCommandOptions()
 
-	//Fill ain the commands that must be applied to
-	//Install Enmasse Core
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/enmasse-infra-namespace.yaml")
-	//
+	co.Commands = append(co.Commands, "tensorflow-deployment")
+	co.Commands = append(co.Commands, "coco-service")
+
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
-	co.SwitchContext(enmasseSetupNamespaceFlag)
+	co.SwitchContext(tensorflowServingNamespaceFlag)
 
 	//Reload config flags after switching context
-	log.Println("Destroy Enmasse Messaging Service")
-	for _, command := range co.Commands {
+
+	log.Println("Provision Tensorflow Serving Pod")
+	for commandNumber, command := range co.Commands {
 		cmd := delete.NewCmdDelete(co.CurrentFactory, IOStreams)
-		err := cmd.Flags().Set("filename", command)
-		if err != nil {
-			log.Fatal(err)
+		if commandNumber == 0 {
+			cmd.Run(cmd, []string{"deployment", command})
+		} else {
+			cmd.Run(cmd, []string{"service", command})
 		}
-		cmd.Run(cmd, []string{})
 		log.Print(out.String())
 		out.Reset()
 	}
-
 }
 
-// destroyCmd represents the destroy command
-var enmasseDestroyCmd = &cobra.Command{
+// tensorflowServingDestroyCmd represents the tensorflowServingDestroy command
+var tensorflowServingDestroyCmd = &cobra.Command{
 	Use:   "destroy",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
@@ -65,22 +60,21 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("destroy called")
-		enmasseDestroy()
+		log.Println("tensorflowServingDestroy called")
+		tensorflowServingDestroy()
 	},
 }
 
 func init() {
-	enmasseCmd.AddCommand(enmasseDestroyCmd)
+	tensorflowServingCmd.AddCommand(tensorflowServingDestroyCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// destroyCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// tensorflowServingDestroyCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// destroyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
+	// tensorflowServingDestroyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

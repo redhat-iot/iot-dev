@@ -16,47 +16,34 @@ limitations under the License.
 package cmd
 
 import (
-	"log"
-	//"os"
-
-	"github.com/spf13/cobra"
-
 	"github.com/IoTCLI/cmd/utils"
+	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"k8s.io/kubectl/pkg/cmd/delete"
+	"k8s.io/kubectl/pkg/cmd/get"
+	"log"
 )
 
-func enmasseDestroy() {
-
-	//Make command options for Kafka Setup
+func getCredentials() {
 	co := utils.NewCommandOptions()
 
-	//Fill ain the commands that must be applied to
-	//Install Enmasse Core
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/enmasse-infra-namespace.yaml")
-	//
+	co.Commands = append(co.Commands, "secrets")
+
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
-	co.SwitchContext(enmasseSetupNamespaceFlag)
+	//Switch Context and Reload Config Flags
+	co.SwitchContext("rook-ceph")
 
-	//Reload config flags after switching context
-	log.Println("Destroy Enmasse Messaging Service")
-	for _, command := range co.Commands {
-		cmd := delete.NewCmdDelete(co.CurrentFactory, IOStreams)
-		err := cmd.Flags().Set("filename", command)
-		if err != nil {
-			log.Fatal(err)
-		}
-		cmd.Run(cmd, []string{})
-		log.Print(out.String())
-		out.Reset()
-	}
-
+	log.Print("Get S3 secrets, save for possible later use:")
+	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
+	cmd.Flags().Set("output", "json")
+	cmd.Run(cmd, []string{co.Commands[0], "rook-ceph-object-user-my-store-odh-user"})
+	log.Print(out.String())
+	out.Reset()
 }
 
-// destroyCmd represents the destroy command
-var enmasseDestroyCmd = &cobra.Command{
-	Use:   "destroy",
+// secretsCmd represents the secrets command
+var cephSecretsCmd = &cobra.Command{
+	Use:   "secrets",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -65,22 +52,21 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("destroy called")
-		enmasseDestroy()
+		log.Println("Ceph Secrets called")
+		getCredentials()
 	},
 }
 
 func init() {
-	enmasseCmd.AddCommand(enmasseDestroyCmd)
+	cephCmd.AddCommand(cephSecretsCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// destroyCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// secretsCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// destroyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
+	// secretsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

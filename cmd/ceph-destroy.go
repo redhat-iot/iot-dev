@@ -21,34 +21,33 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/delete"
 	"log"
+	//"time"
 )
 
-var (
-	kafkaDestroyNamespaceFlag string
-)
-
-func kafkaDestroy() {
-
-	//Make command options for Kafka Setup
+//Made from Instructions @https://opendatahub.io/docs/administration/advanced-installation/object-storage.html for installing
+//ceph object storage via the rook operator
+func cephDestroy() {
+	//Make command options for Knative Setup
 	co := utils.NewCommandOptions()
 
-	_ = utils.DownloadAndUncompress("oc.gz", "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz")
-	log.Println("oc Source folder: ", "oc")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/route.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/object-user.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/object.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/toolbox.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/cluster.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/operator.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/scc.yaml")
 
-	//Fill in the commands that must be applied to
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/setup/kafka.yaml")
-	co.Commands = append(co.Commands, "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.17.0/strimzi-cluster-operator-0.17.0.yaml")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/setup/kafka-namespace.yaml")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/mandatory.yaml")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/provider/cloud-generic.yaml")
-	//
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
-	co.SwitchContext(kafkaDestroyNamespaceFlag)
+	//Switch Context and Reload Config Flags
+	co.SwitchContext("rook-ceph-system")
 
-	log.Println("Destroy Kafka from cluster")
+	log.Println("Provision Knative Source")
 	for _, command := range co.Commands {
 		cmd := delete.NewCmdDelete(co.CurrentFactory, IOStreams)
+		//Kubectl signals missing field, set validate to false to ignore this
+		cmd.Flags().Set("validate", "false")
 		err := cmd.Flags().Set("filename", command)
 		if err != nil {
 			log.Fatal(err)
@@ -56,12 +55,13 @@ func kafkaDestroy() {
 		cmd.Run(cmd, []string{})
 		log.Print(out.String())
 		out.Reset()
+
 	}
-	//Remove tempfile when done
+
 }
 
 // destroyCmd represents the destroy command
-var kafkaDestroyCmd = &cobra.Command{
+var cephDestroyCmd = &cobra.Command{
 	Use:   "destroy",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
@@ -71,13 +71,13 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("Destroy called")
-		kafkaDestroy()
+		log.Println("destroy called")
+		cephDestroy()
 	},
 }
 
 func init() {
-	kafkaCmd.AddCommand(kafkaDestroyCmd)
+	cephCmd.AddCommand(cephDestroyCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -88,5 +88,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// destroyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	kafkaDestroyCmd.Flags().StringVarP(&kafkaDestroyNamespaceFlag, "namespace", "n", "kafka", "Option to specify namespace for kafka deletion, defaults to 'kafka'")
 }

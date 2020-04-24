@@ -16,6 +16,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
+	gopkg.in/yaml.v2 v2.2.8
 	k8s.io/cli-runtime v0.18.1
 	k8s.io/client-go v0.18.1
 	k8s.io/kubectl v0.18.1

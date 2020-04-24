@@ -18,7 +18,6 @@ package cmd
 import (
 	"log"
 	"strconv"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -38,9 +37,9 @@ func knativeServing() {
 	co := utils.NewCommandOptions()
 
 	//Install Openshift Serveless and  Knative Serving
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/operatorgroup.yaml")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/sub.yaml")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/knative-serving.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/knative/setup/operatorgroup.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/knative/setup/sub.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/knative/setup/knative-serving.yaml")
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
 	co.SwitchContext("knative-serving")
@@ -57,7 +56,7 @@ func knativeServing() {
 		out.Reset()
 		//Allow time for Operator to distribute to all namespaces
 		if commandNumber == 1 {
-			time.Sleep(2.0 * time.Second)
+			time.Sleep(10.0 * time.Second)
 		}
 	}
 
@@ -70,25 +69,24 @@ func knativeServing() {
 	for !deployments && !install && !ready && !dependencies {
 
 		cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
-		err := cmd.Flags().Set("output", "jsonpath={.status.conditions}")
-		if err != nil {
-			log.Fatal(err)
-		}
+		//err := cmd.Flags().Set("output", "jsonpath={.status.conditions}")
+		cmd.Flags().Set("template", "{{range .status.conditions}}{{printf \"%s=%s\" .type .status}}{{end}}")
+
 		cmd.Run(cmd, []string{"knativeserving.operator.knative.dev/knative-serving"})
 		knativeStatus := out.String()
-		knativeStatusSlice := strings.Split(knativeStatus, " ")
+		//log.Println(knativeStatus)
 
-		dependencies, _ = strconv.ParseBool(knativeStatusSlice[1][7:11])
-		deployments, _ = strconv.ParseBool(knativeStatusSlice[4][7:11])
-		install, _ = strconv.ParseBool(knativeStatusSlice[7][7:11])
-		ready, _ = strconv.ParseBool(knativeStatusSlice[10][7:11])
+		dependencies, _ = strconv.ParseBool(knativeStatus[21:26])
+		deployments, _ = strconv.ParseBool(knativeStatus[46:51])
+		install, _ = strconv.ParseBool(knativeStatus[68:72])
+		ready, _ = strconv.ParseBool(knativeStatus[78:82])
 
-		log.Print("knative Serving Install Status:\nDependenciesInstalled=" + knativeStatusSlice[1][7:11] + "\n" +
-			"DeploymentsAvaliable=" + knativeStatusSlice[4][7:11] + "\n" + "InstallSucceeded=" + knativeStatusSlice[7][7:11] +
-			"\n" + "Ready=" + knativeStatusSlice[10][7:11] + "\n")
+		log.Print("knative Serving Install Status:\nDependenciesInstalled=" + knativeStatus[21:26] + "\n" +
+			"DeploymentsAvaliable=" + knativeStatus[46:51] + "\n" + "InstallSucceeded=" + knativeStatus[68:72] +
+			"\n" + "Ready=" + knativeStatus[78:82] + "\n")
 		out.Reset()
 
-		time.Sleep(5 * time.Second)
+		time.Sleep(10 * time.Second)
 
 	}
 
@@ -140,9 +138,15 @@ func knativeStatus() {
 	co.SwitchContext("knative-serving")
 
 	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
-	cmd.Flags().Set("template", "'{{range .status.conditions}}{{printf \"%s=%s\" .type .status}}{{end}}'")
+	cmd.Flags().Set("template", "{{range .status.conditions}}{{printf \"%s=%s\" .type .status}}{{end}}")
 	cmd.Run(cmd, []string{co.Commands[0]})
-	log.Print(out.String())
+	//log.Print(out.String())
+	knativeStatus := out.String()
+	out.Reset()
+
+	log.Print("knative Serving Install Status:\nDependenciesInstalled=" + knativeStatus[21:26] + "\n" +
+		"DeploymentsAvaliable=" + knativeStatus[46:51] + "\n" + "InstallSucceeded=" + knativeStatus[68:72] +
+		"\n" + "Ready=" + knativeStatus[78:82] + "\n")
 	out.Reset()
 
 	co.SwitchContext("knative-eventing")

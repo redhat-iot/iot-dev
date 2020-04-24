@@ -18,6 +18,7 @@ package cmd
 import (
 	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -108,6 +109,9 @@ func createProject() {
 		log.Print(out.String())
 		out.Reset()
 	}
+
+	//Remove Enmasse Source code
+	os.RemoveAll(enmasseFolderName)
 
 }
 

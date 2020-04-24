@@ -22,6 +22,7 @@ import (
 	"k8s.io/kubectl/pkg/cmd/apply"
 	"k8s.io/kubectl/pkg/cmd/get"
 	"log"
+	"time"
 )
 
 //Made from Instructions @https://opendatahub.io/docs/administration/advanced-installation/object-storage.html for installing
@@ -38,7 +39,7 @@ func cephSetup() {
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/object.yaml")
 	co.Commands = append(co.Commands, "pods")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/object-user.yaml")
-	co.Commands = append(co.Commands, "secrets")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/route.yaml")
 
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
@@ -47,26 +48,34 @@ func cephSetup() {
 
 	log.Println("Provision Knative Source")
 	for commandNumber, command := range co.Commands {
+		//After the system pods are provisioned wait for them to become ready before moving on
 		if commandNumber == 2 {
-			log.Print("Make sure Pods are ready in rook-ceph-system namespace:")
-			cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
-			cmd.Run(cmd, []string{command})
-			log.Print(out.String())
-			out.Reset()
+			log.Print("Waiting for Pods to be ready in rook-ceph-system namespace:")
+			podStatus := utils.NewpodStatus()
+			for podStatus.Running != 7 {
+				cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
+				cmd.Flags().Set("output", "yaml")
+				cmd.Run(cmd, []string{command})
+				podStatus.CountPods(out.Bytes())
+				log.Print("waiting...")
+				out.Reset()
+				time.Sleep(5 * time.Second)
+			}
 			co.SwitchContext("rook-ceph")
+
 		} else if commandNumber == 6 {
-			log.Print("Make sure Pods are ready in rook-ceph")
-			cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
-			cmd.Run(cmd, []string{command})
-			log.Print(out.String())
-			out.Reset()
-		} else if commandNumber == 8 {
-			log.Print("Get S3 secrets, save for possible later use:")
-			cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
-			cmd.Flags().Set("output", "json")
-			cmd.Run(cmd, []string{command, "rook-ceph-object-user-my-store-odh-user"})
-			log.Print(out.String())
-			out.Reset()
+			//After the pods in rook-ceph are provisioned wait for them to become ready before moving on
+			log.Print("Waiting for pods to be ready in rook-ceph")
+			podStatus := utils.NewpodStatus()
+			for podStatus.Running != 9 && podStatus.Succeeded != 3 {
+				cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
+				cmd.Flags().Set("output", "yaml")
+				cmd.Run(cmd, []string{command})
+				podStatus.CountPods(out.Bytes())
+				log.Print("waiting...")
+				out.Reset()
+				time.Sleep(5 * time.Second)
+			}
 		} else {
 			cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
 			//Kubectl signals missing field, set validate to false to ignore this

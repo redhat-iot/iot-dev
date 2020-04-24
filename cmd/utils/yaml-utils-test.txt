@@ -1,0 +1,3255 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      k8s.v1.cni.cncf.io/networks-status: |-
+        [{
+            "name": "openshift-sdn",
+            "interface": "eth0",
+            "ips": [
+                "10.130.0.57"
+            ],
+            "dns": {},
+            "default-route": [
+                "10.130.0.1"
+            ]
+        }]
+      openshift.io/scc: restricted
+      prometheus.io/port: "9283"
+      prometheus.io/scrape: "true"
+    creationTimestamp: "2020-04-21T21:58:54Z"
+    generateName: rook-ceph-mgr-a-59f5b66c5f-
+    labels:
+      app: rook-ceph-mgr
+      ceph_daemon_id: a
+      instance: a
+      mgr: a
+      pod-template-hash: 59f5b66c5f
+      rook_cluster: rook-ceph
+    name: rook-ceph-mgr-a-59f5b66c5f-rdwd6
+    namespace: rook-ceph
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: rook-ceph-mgr-a-59f5b66c5f
+      uid: fc6c697f-af38-4b1e-8d46-6a1c740dfe27
+    resourceVersion: "4273796"
+    selfLink: /api/v1/namespaces/rook-ceph/pods/rook-ceph-mgr-a-59f5b66c5f-rdwd6
+    uid: cf3fcfd9-93d1-420c-9b56-8d119f754b6c
+  spec:
+    affinity: {}
+    containers:
+    - args:
+      - --foreground
+      - --id
+      - a
+      command:
+      - ceph-mgr
+      env:
+      - name: POD_NAME
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.name
+      - name: POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.namespace
+      - name: NODE_NAME
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: spec.nodeName
+      - name: ROOK_CLUSTER_NAME
+        value: rook-ceph
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: mgr
+      ports:
+      - containerPort: 6800
+        name: mgr
+        protocol: TCP
+      - containerPort: 9283
+        name: http-metrics
+        protocol: TCP
+      - containerPort: 8443
+        name: dashboard
+        protocol: TCP
+      resources: {}
+      securityContext:
+        capabilities:
+          drop:
+          - KILL
+          - MKNOD
+          - SETGID
+          - SETUID
+        runAsUser: 1000810000
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-mgr-token-wp659
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    imagePullSecrets:
+    - name: rook-ceph-mgr-dockercfg-qs5gl
+    initContainers:
+    - args:
+      - ceph
+      - mgr-init
+      - --config-dir=/var/lib/rook
+      - --mgr-name=a
+      env:
+      - name: ROOK_MGR_KEYRING
+        valueFrom:
+          secretKeyRef:
+            key: keyring
+            name: rook-ceph-mgr-a
+      - name: ROOK_PRIVATE_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_PUBLIC_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_MGR_MODULE_SERVER_ADDR
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_CEPH_VERSION_NAME
+        value: mimic
+      - name: ROOK_MON_ENDPOINTS
+        valueFrom:
+          configMapKeyRef:
+            key: data
+            name: rook-ceph-mon-endpoints
+      - name: ROOK_MON_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: mon-secret
+            name: rook-ceph-mon
+      - name: ROOK_ADMIN_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: admin-secret
+            name: rook-ceph-mon
+      - name: ROOK_CEPH_CONFIG_OVERRIDE
+        value: /etc/rook/config/override.conf
+      image: rook/ceph:v0.9.3
+      imagePullPolicy: IfNotPresent
+      name: config-init
+      resources: {}
+      securityContext:
+        capabilities:
+          drop:
+          - KILL
+          - MKNOD
+          - SETGID
+          - SETUID
+        runAsUser: 1000810000
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /etc/rook/config
+        name: rook-config-override
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-mgr-token-wp659
+        readOnly: true
+    nodeName: astoycos-ocp-vlft2-worker-qmjmh
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1000810000
+      seLinuxOptions:
+        level: s0:c28,c27
+    serviceAccount: rook-ceph-mgr
+    serviceAccountName: rook-ceph-mgr
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - emptyDir: {}
+      name: rook-data
+    - emptyDir: {}
+      name: ceph-default-config-dir
+    - configMap:
+        defaultMode: 420
+        items:
+        - key: config
+          path: override.conf
+        name: rook-config-override
+      name: rook-config-override
+    - name: rook-ceph-mgr-token-wp659
+      secret:
+        defaultMode: 420
+        secretName: rook-ceph-mgr-token-wp659
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:59:04Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:59:05Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:59:05Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:58:54Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: cri-o://9375ad6e5032971ba563ef6260b53a93114af4f1cd9c4ae73b1ecdd0c51cec17
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: mgr
+      ready: true
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2020-04-21T21:59:04Z"
+    hostIP: 10.1.0.35
+    initContainerStatuses:
+    - containerID: cri-o://d21e4b9b9a725f8a7d019d713a62ee736bae1b8c3e38982ddc7874063dfb4cbf
+      image: docker.io/rook/ceph:v0.9.3
+      imageID: docker.io/rook/ceph@sha256:38ba0ae4e3a0a0c3b5e5a4605f58d47e997f06b2a19ad2a35d4a2bd9268d3b30
+      lastState: {}
+      name: config-init
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://d21e4b9b9a725f8a7d019d713a62ee736bae1b8c3e38982ddc7874063dfb4cbf
+          exitCode: 0
+          finishedAt: "2020-04-21T21:59:03Z"
+          reason: Completed
+          startedAt: "2020-04-21T21:58:49Z"
+    phase: Running
+    podIP: 10.130.0.57
+    podIPs:
+    - ip: 10.130.0.57
+    qosClass: BestEffort
+    startTime: "2020-04-21T21:58:46Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      k8s.v1.cni.cncf.io/networks-status: |-
+        [{
+            "name": "openshift-sdn",
+            "interface": "eth0",
+            "ips": [
+                "10.129.0.171"
+            ],
+            "dns": {},
+            "default-route": [
+                "10.129.0.1"
+            ]
+        }]
+      openshift.io/scc: rook-ceph
+    creationTimestamp: "2020-04-21T21:57:04Z"
+    generateName: rook-ceph-mon-a-5669964977-
+    labels:
+      app: rook-ceph-mon
+      ceph_daemon_id: a
+      mon: a
+      mon_cluster: rook-ceph
+      pod-template-hash: "5669964977"
+      rook_cluster: rook-ceph
+    name: rook-ceph-mon-a-5669964977-pj7wm
+    namespace: rook-ceph
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: rook-ceph-mon-a-5669964977
+      uid: 5c556d97-0f1d-4ef9-9d8c-d4bb7dc9e335
+    resourceVersion: "4273245"
+    selfLink: /api/v1/namespaces/rook-ceph/pods/rook-ceph-mon-a-5669964977-pj7wm
+    uid: ed8e7c7f-f191-4144-bb58-c2d99609707f
+  spec:
+    affinity: {}
+    containers:
+    - args:
+      - --foreground
+      - --public-addr
+      - 172.30.211.70:6790
+      - --name
+      - mon.a
+      - --mon-data
+      - /var/lib/rook/mon-a/data
+      command:
+      - ceph-mon
+      env:
+      - name: POD_NAME
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.name
+      - name: POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.namespace
+      - name: NODE_NAME
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: spec.nodeName
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: mon
+      ports:
+      - containerPort: 6790
+        name: client
+        protocol: TCP
+      resources: {}
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-j8ssz
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    imagePullSecrets:
+    - name: default-dockercfg-phmd8
+    initContainers:
+    - args:
+      - ceph
+      - mon-init
+      - --config-dir=/var/lib/rook
+      - --name=a
+      - --port=6790
+      - --fsid=22c67427-f4fc-42c8-b97b-24e1705a7196
+      env:
+      - name: ROOK_PRIVATE_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_PUBLIC_IP
+        value: 172.30.211.70
+      - name: ROOK_CLUSTER_NAME
+        value: rook-ceph
+      - name: ROOK_MON_ENDPOINTS
+        valueFrom:
+          configMapKeyRef:
+            key: data
+            name: rook-ceph-mon-endpoints
+      - name: ROOK_MON_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: mon-secret
+            name: rook-ceph-mon
+      - name: ROOK_ADMIN_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: admin-secret
+            name: rook-ceph-mon
+      - name: ROOK_CEPH_CONFIG_OVERRIDE
+        value: /etc/rook/config/override.conf
+      image: rook/ceph:v0.9.3
+      imagePullPolicy: IfNotPresent
+      name: config-init
+      resources: {}
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /etc/rook/config
+        name: rook-config-override
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-j8ssz
+        readOnly: true
+    - args:
+      - /var/lib/rook/mon-a/monmap
+      - --create
+      - --clobber
+      - --fsid
+      - 22c67427-f4fc-42c8-b97b-24e1705a7196
+      - --add
+      - a
+      - 172.30.211.70:6790
+      command:
+      - /usr/bin/monmaptool
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: monmap-init
+      resources: {}
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-j8ssz
+        readOnly: true
+    - args:
+      - --mkfs
+      - --monmap
+      - /var/lib/rook/mon-a/monmap
+      - --name
+      - mon.a
+      - --mon-data
+      - /var/lib/rook/mon-a/data
+      command:
+      - ceph-mon
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: mon-fs-init
+      resources: {}
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-j8ssz
+        readOnly: true
+    nodeName: astoycos-ocp-vlft2-worker-jfbd6
+    nodeSelector:
+      kubernetes.io/hostname: astoycos-ocp-vlft2-worker-jfbd6
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1000810000
+      seLinuxOptions:
+        level: s0:c28,c27
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - hostPath:
+        path: /var/lib/rook
+        type: ""
+      name: rook-data
+    - emptyDir: {}
+      name: ceph-default-config-dir
+    - configMap:
+        defaultMode: 420
+        items:
+        - key: config
+          path: override.conf
+        name: rook-config-override
+      name: rook-config-override
+    - name: default-token-j8ssz
+      secret:
+        defaultMode: 420
+        secretName: default-token-j8ssz
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:57:22Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:57:23Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:57:23Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:57:04Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: cri-o://b68348d4eb74a856445f6a4c91818bbc4b8a6fe461afa99c0d60d0b2c0ec8e86
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: mon
+      ready: true
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2020-04-21T21:57:22Z"
+    hostIP: 10.1.0.13
+    initContainerStatuses:
+    - containerID: cri-o://bb60b98194bb157c8f3406625f1cc03079483d496e10c8314741e7ac3681cf4a
+      image: docker.io/rook/ceph:v0.9.3
+      imageID: docker.io/rook/ceph@sha256:38ba0ae4e3a0a0c3b5e5a4605f58d47e997f06b2a19ad2a35d4a2bd9268d3b30
+      lastState: {}
+      name: config-init
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://bb60b98194bb157c8f3406625f1cc03079483d496e10c8314741e7ac3681cf4a
+          exitCode: 0
+          finishedAt: "2020-04-21T21:57:04Z"
+          reason: Completed
+          startedAt: "2020-04-21T21:57:04Z"
+    - containerID: cri-o://ad9e2d0f19eb84273a861307770e09a8241623776bdcbdbfc0dbc6fdb162d23a
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: monmap-init
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://ad9e2d0f19eb84273a861307770e09a8241623776bdcbdbfc0dbc6fdb162d23a
+          exitCode: 0
+          finishedAt: "2020-04-21T21:57:20Z"
+          reason: Completed
+          startedAt: "2020-04-21T21:57:20Z"
+    - containerID: cri-o://b9a9342d979fc54324f20b73782af4d37863f96d0f31204cd9afd403b062324e
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: mon-fs-init
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://b9a9342d979fc54324f20b73782af4d37863f96d0f31204cd9afd403b062324e
+          exitCode: 0
+          finishedAt: "2020-04-21T21:57:22Z"
+          reason: Completed
+          startedAt: "2020-04-21T21:57:21Z"
+    phase: Running
+    podIP: 10.129.0.171
+    podIPs:
+    - ip: 10.129.0.171
+    qosClass: BestEffort
+    startTime: "2020-04-21T21:57:00Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      k8s.v1.cni.cncf.io/networks-status: |-
+        [{
+            "name": "openshift-sdn",
+            "interface": "eth0",
+            "ips": [
+                "10.130.0.56"
+            ],
+            "dns": {},
+            "default-route": [
+                "10.130.0.1"
+            ]
+        }]
+      openshift.io/scc: rook-ceph
+    creationTimestamp: "2020-04-21T21:57:29Z"
+    generateName: rook-ceph-mon-b-85bfd6f7bf-
+    labels:
+      app: rook-ceph-mon
+      ceph_daemon_id: b
+      mon: b
+      mon_cluster: rook-ceph
+      pod-template-hash: 85bfd6f7bf
+      rook_cluster: rook-ceph
+    name: rook-ceph-mon-b-85bfd6f7bf-b5kxg
+    namespace: rook-ceph
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: rook-ceph-mon-b-85bfd6f7bf
+      uid: 5df5c1d7-03ed-47b1-8c65-fbb115bfbc8f
+    resourceVersion: "4273330"
+    selfLink: /api/v1/namespaces/rook-ceph/pods/rook-ceph-mon-b-85bfd6f7bf-b5kxg
+    uid: ef37b724-a07c-4ae1-b14a-8b47357dd47c
+  spec:
+    affinity: {}
+    containers:
+    - args:
+      - --foreground
+      - --public-addr
+      - 172.30.180.181:6790
+      - --name
+      - mon.b
+      - --mon-data
+      - /var/lib/rook/mon-b/data
+      command:
+      - ceph-mon
+      env:
+      - name: POD_NAME
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.name
+      - name: POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.namespace
+      - name: NODE_NAME
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: spec.nodeName
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: mon
+      ports:
+      - containerPort: 6790
+        name: client
+        protocol: TCP
+      resources: {}
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-j8ssz
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    imagePullSecrets:
+    - name: default-dockercfg-phmd8
+    initContainers:
+    - args:
+      - ceph
+      - mon-init
+      - --config-dir=/var/lib/rook
+      - --name=b
+      - --port=6790
+      - --fsid=22c67427-f4fc-42c8-b97b-24e1705a7196
+      env:
+      - name: ROOK_PRIVATE_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_PUBLIC_IP
+        value: 172.30.180.181
+      - name: ROOK_CLUSTER_NAME
+        value: rook-ceph
+      - name: ROOK_MON_ENDPOINTS
+        valueFrom:
+          configMapKeyRef:
+            key: data
+            name: rook-ceph-mon-endpoints
+      - name: ROOK_MON_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: mon-secret
+            name: rook-ceph-mon
+      - name: ROOK_ADMIN_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: admin-secret
+            name: rook-ceph-mon
+      - name: ROOK_CEPH_CONFIG_OVERRIDE
+        value: /etc/rook/config/override.conf
+      image: rook/ceph:v0.9.3
+      imagePullPolicy: IfNotPresent
+      name: config-init
+      resources: {}
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /etc/rook/config
+        name: rook-config-override
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-j8ssz
+        readOnly: true
+    - args:
+      - /var/lib/rook/mon-b/monmap
+      - --create
+      - --clobber
+      - --fsid
+      - 22c67427-f4fc-42c8-b97b-24e1705a7196
+      - --add
+      - a
+      - 172.30.211.70:6790
+      - --add
+      - b
+      - 172.30.180.181:6790
+      command:
+      - /usr/bin/monmaptool
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: monmap-init
+      resources: {}
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-j8ssz
+        readOnly: true
+    - args:
+      - --mkfs
+      - --monmap
+      - /var/lib/rook/mon-b/monmap
+      - --name
+      - mon.b
+      - --mon-data
+      - /var/lib/rook/mon-b/data
+      command:
+      - ceph-mon
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: mon-fs-init
+      resources: {}
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-j8ssz
+        readOnly: true
+    nodeName: astoycos-ocp-vlft2-worker-qmjmh
+    nodeSelector:
+      kubernetes.io/hostname: astoycos-ocp-vlft2-worker-qmjmh
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1000810000
+      seLinuxOptions:
+        level: s0:c28,c27
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - hostPath:
+        path: /var/lib/rook
+        type: ""
+      name: rook-data
+    - emptyDir: {}
+      name: ceph-default-config-dir
+    - configMap:
+        defaultMode: 420
+        items:
+        - key: config
+          path: override.conf
+        name: rook-config-override
+      name: rook-config-override
+    - name: default-token-j8ssz
+      secret:
+        defaultMode: 420
+        secretName: default-token-j8ssz
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:57:27Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:57:28Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:57:28Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:57:29Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: cri-o://0433a989e6f15a3d8be4068b33b6fac6783b7077650c5f07b5c9fc298985ae3b
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: mon
+      ready: true
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2020-04-21T21:57:27Z"
+    hostIP: 10.1.0.35
+    initContainerStatuses:
+    - containerID: cri-o://6e84d7c67fe3285570e470aefbf08d411df6fa49dd6ada88644930bec632abf8
+      image: docker.io/rook/ceph:v0.9.3
+      imageID: docker.io/rook/ceph@sha256:38ba0ae4e3a0a0c3b5e5a4605f58d47e997f06b2a19ad2a35d4a2bd9268d3b30
+      lastState: {}
+      name: config-init
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://6e84d7c67fe3285570e470aefbf08d411df6fa49dd6ada88644930bec632abf8
+          exitCode: 0
+          finishedAt: "2020-04-21T21:57:25Z"
+          reason: Completed
+          startedAt: "2020-04-21T21:57:25Z"
+    - containerID: cri-o://731e89c2faab127b470aadc83b7e2a901bdb3f93ebbbef071a5d9762c7d78d01
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: monmap-init
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://731e89c2faab127b470aadc83b7e2a901bdb3f93ebbbef071a5d9762c7d78d01
+          exitCode: 0
+          finishedAt: "2020-04-21T21:57:25Z"
+          reason: Completed
+          startedAt: "2020-04-21T21:57:25Z"
+    - containerID: cri-o://adfdd90ce3e6c94c75374bf91fea80667374c3ae0ceaa491a4cecf574ad0f683
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: mon-fs-init
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://adfdd90ce3e6c94c75374bf91fea80667374c3ae0ceaa491a4cecf574ad0f683
+          exitCode: 0
+          finishedAt: "2020-04-21T21:57:26Z"
+          reason: Completed
+          startedAt: "2020-04-21T21:57:26Z"
+    phase: Running
+    podIP: 10.130.0.56
+    podIPs:
+    - ip: 10.130.0.56
+    qosClass: BestEffort
+    startTime: "2020-04-21T21:57:22Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      k8s.v1.cni.cncf.io/networks-status: |-
+        [{
+            "name": "openshift-sdn",
+            "interface": "eth0",
+            "ips": [
+                "10.131.0.27"
+            ],
+            "dns": {},
+            "default-route": [
+                "10.131.0.1"
+            ]
+        }]
+      openshift.io/scc: rook-ceph
+    creationTimestamp: "2020-04-21T21:57:41Z"
+    generateName: rook-ceph-mon-c-f6bc79758-
+    labels:
+      app: rook-ceph-mon
+      ceph_daemon_id: c
+      mon: c
+      mon_cluster: rook-ceph
+      pod-template-hash: f6bc79758
+      rook_cluster: rook-ceph
+    name: rook-ceph-mon-c-f6bc79758-smn8p
+    namespace: rook-ceph
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: rook-ceph-mon-c-f6bc79758
+      uid: 85f3e6aa-3934-4777-ab74-4c6456d28dc2
+    resourceVersion: "4273485"
+    selfLink: /api/v1/namespaces/rook-ceph/pods/rook-ceph-mon-c-f6bc79758-smn8p
+    uid: 77acdea0-51f7-4a83-bb5f-3f35da7ca6eb
+  spec:
+    affinity: {}
+    containers:
+    - args:
+      - --foreground
+      - --public-addr
+      - 172.30.52.100:6790
+      - --name
+      - mon.c
+      - --mon-data
+      - /var/lib/rook/mon-c/data
+      command:
+      - ceph-mon
+      env:
+      - name: POD_NAME
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.name
+      - name: POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.namespace
+      - name: NODE_NAME
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: spec.nodeName
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: mon
+      ports:
+      - containerPort: 6790
+        name: client
+        protocol: TCP
+      resources: {}
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-j8ssz
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    imagePullSecrets:
+    - name: default-dockercfg-phmd8
+    initContainers:
+    - args:
+      - ceph
+      - mon-init
+      - --config-dir=/var/lib/rook
+      - --name=c
+      - --port=6790
+      - --fsid=22c67427-f4fc-42c8-b97b-24e1705a7196
+      env:
+      - name: ROOK_PRIVATE_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_PUBLIC_IP
+        value: 172.30.52.100
+      - name: ROOK_CLUSTER_NAME
+        value: rook-ceph
+      - name: ROOK_MON_ENDPOINTS
+        valueFrom:
+          configMapKeyRef:
+            key: data
+            name: rook-ceph-mon-endpoints
+      - name: ROOK_MON_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: mon-secret
+            name: rook-ceph-mon
+      - name: ROOK_ADMIN_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: admin-secret
+            name: rook-ceph-mon
+      - name: ROOK_CEPH_CONFIG_OVERRIDE
+        value: /etc/rook/config/override.conf
+      image: rook/ceph:v0.9.3
+      imagePullPolicy: IfNotPresent
+      name: config-init
+      resources: {}
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /etc/rook/config
+        name: rook-config-override
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-j8ssz
+        readOnly: true
+    - args:
+      - /var/lib/rook/mon-c/monmap
+      - --create
+      - --clobber
+      - --fsid
+      - 22c67427-f4fc-42c8-b97b-24e1705a7196
+      - --add
+      - a
+      - 172.30.211.70:6790
+      - --add
+      - b
+      - 172.30.180.181:6790
+      - --add
+      - c
+      - 172.30.52.100:6790
+      command:
+      - /usr/bin/monmaptool
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: monmap-init
+      resources: {}
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-j8ssz
+        readOnly: true
+    - args:
+      - --mkfs
+      - --monmap
+      - /var/lib/rook/mon-c/monmap
+      - --name
+      - mon.c
+      - --mon-data
+      - /var/lib/rook/mon-c/data
+      command:
+      - ceph-mon
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: mon-fs-init
+      resources: {}
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-j8ssz
+        readOnly: true
+    nodeName: astoycos-ocp-vlft2-worker-r7nbp
+    nodeSelector:
+      kubernetes.io/hostname: astoycos-ocp-vlft2-worker-r7nbp
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1000810000
+      seLinuxOptions:
+        level: s0:c28,c27
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - hostPath:
+        path: /var/lib/rook
+        type: ""
+      name: rook-data
+    - emptyDir: {}
+      name: ceph-default-config-dir
+    - configMap:
+        defaultMode: 420
+        items:
+        - key: config
+          path: override.conf
+        name: rook-config-override
+      name: rook-config-override
+    - name: default-token-j8ssz
+      secret:
+        defaultMode: 420
+        secretName: default-token-j8ssz
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:57:10Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:57:11Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:57:11Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:57:41Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: cri-o://6edc8590f52af090cbdfbd6a070ebe567f1b5f7f75561bd71119e365a3e4e553
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: mon
+      ready: true
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2020-04-21T21:57:11Z"
+    hostIP: 10.1.0.16
+    initContainerStatuses:
+    - containerID: cri-o://f021b682dd96509d42d217ad883966484761859230037a3765ff5ad97fbdd15c
+      image: docker.io/rook/ceph:v0.9.3
+      imageID: docker.io/rook/ceph@sha256:38ba0ae4e3a0a0c3b5e5a4605f58d47e997f06b2a19ad2a35d4a2bd9268d3b30
+      lastState: {}
+      name: config-init
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://f021b682dd96509d42d217ad883966484761859230037a3765ff5ad97fbdd15c
+          exitCode: 0
+          finishedAt: "2020-04-21T21:56:56Z"
+          reason: Completed
+          startedAt: "2020-04-21T21:56:56Z"
+    - containerID: cri-o://67e7d0c06d931d36d51bd1b72bb465107137bd4eb3e62c805c8c0a60aa048005
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: monmap-init
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://67e7d0c06d931d36d51bd1b72bb465107137bd4eb3e62c805c8c0a60aa048005
+          exitCode: 0
+          finishedAt: "2020-04-21T21:57:09Z"
+          reason: Completed
+          startedAt: "2020-04-21T21:57:09Z"
+    - containerID: cri-o://a73d8d11ad39a96c0620ff8cd1f90148cb62a8da45bb175891fb67cf203ff3ed
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: mon-fs-init
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://a73d8d11ad39a96c0620ff8cd1f90148cb62a8da45bb175891fb67cf203ff3ed
+          exitCode: 0
+          finishedAt: "2020-04-21T21:57:10Z"
+          reason: Completed
+          startedAt: "2020-04-21T21:57:09Z"
+    phase: Running
+    podIP: 10.131.0.27
+    podIPs:
+    - ip: 10.131.0.27
+    qosClass: BestEffort
+    startTime: "2020-04-21T21:56:54Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      k8s.v1.cni.cncf.io/networks-status: |-
+        [{
+            "name": "openshift-sdn",
+            "interface": "eth0",
+            "ips": [
+                "10.129.0.173"
+            ],
+            "dns": {},
+            "default-route": [
+                "10.129.0.1"
+            ]
+        }]
+      openshift.io/scc: rook-ceph
+    creationTimestamp: "2020-04-21T22:01:42Z"
+    generateName: rook-ceph-osd-0-765d9cd445-
+    labels:
+      app: rook-ceph-osd
+      ceph-osd-id: "0"
+      pod-template-hash: 765d9cd445
+      rook_cluster: rook-ceph
+    name: rook-ceph-osd-0-765d9cd445-qx8br
+    namespace: rook-ceph
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: rook-ceph-osd-0-765d9cd445
+      uid: 0f83f56d-49b5-4325-8e56-1f1aee50b4e5
+    resourceVersion: "4274710"
+    selfLink: /api/v1/namespaces/rook-ceph/pods/rook-ceph-osd-0-765d9cd445-qx8br
+    uid: 31698a62-bc9c-49c6-a409-e95024c1f257
+  spec:
+    affinity: {}
+    containers:
+    - args:
+      - --foreground
+      - --id
+      - "0"
+      - --conf
+      - /var/lib/rook/osd0/rook-ceph.config
+      - --osd-data
+      - /var/lib/rook/osd0
+      - --keyring
+      - /var/lib/rook/osd0/keyring
+      - --cluster
+      - rook-ceph
+      - --osd-uuid
+      - 95e6e518-69d8-44e2-8bb5-49abc664d17e
+      - --osd-journal=/var/lib/rook/osd0/journal
+      command:
+      - ceph-osd
+      env:
+      - name: ROOK_NODE_NAME
+        value: astoycos-ocp-vlft2-worker-jfbd6
+      - name: ROOK_PRIVATE_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_PUBLIC_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: TINI_SUBREAPER
+      - name: POD_NAME
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.name
+      - name: POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.namespace
+      - name: NODE_NAME
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: spec.nodeName
+      - name: ROOK_OSD_UUID
+        value: 95e6e518-69d8-44e2-8bb5-49abc664d17e
+      - name: ROOK_OSD_ID
+        value: "0"
+      - name: ROOK_OSD_STORE_TYPE
+        value: filestore
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: osd
+      resources: {}
+      securityContext:
+        privileged: true
+        readOnlyRootFilesystem: false
+        runAsUser: 0
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /rook
+        name: rook-binaries
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-osd-token-nqs62
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    hostPID: true
+    imagePullSecrets:
+    - name: rook-ceph-osd-dockercfg-fjpfw
+    initContainers:
+    - args:
+      - ceph
+      - osd
+      - init
+      env:
+      - name: ROOK_NODE_NAME
+        value: astoycos-ocp-vlft2-worker-jfbd6
+      - name: ROOK_CLUSTER_ID
+        value: a94c7d79-798a-49d2-b838-2628e5019de5
+      - name: ROOK_PRIVATE_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_PUBLIC_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_CLUSTER_NAME
+        value: rook-ceph
+      - name: ROOK_MON_ENDPOINTS
+        valueFrom:
+          configMapKeyRef:
+            key: data
+            name: rook-ceph-mon-endpoints
+      - name: ROOK_MON_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: mon-secret
+            name: rook-ceph-mon
+      - name: ROOK_ADMIN_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: admin-secret
+            name: rook-ceph-mon
+      - name: ROOK_CONFIG_DIR
+        value: /var/lib/rook
+      - name: ROOK_CEPH_CONFIG_OVERRIDE
+        value: /etc/rook/config/override.conf
+      - name: ROOK_FSID
+        valueFrom:
+          secretKeyRef:
+            key: fsid
+            name: rook-ceph-mon
+      - name: ROOK_OSD_DATABASE_SIZE
+        value: "1024"
+      - name: ROOK_OSD_JOURNAL_SIZE
+        value: "1024"
+      - name: ROOK_OSDS_PER_DEVICE
+        value: "1"
+      - name: TINI_SUBREAPER
+      - name: ROOK_OSD_ID
+        value: "0"
+      image: rook/ceph:v0.9.3
+      imagePullPolicy: IfNotPresent
+      name: config-init
+      resources: {}
+      securityContext:
+        privileged: true
+        readOnlyRootFilesystem: false
+        runAsUser: 0
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /etc/rook/config
+        name: rook-config-override
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-osd-token-nqs62
+        readOnly: true
+    - args:
+      - ceph
+      - osd
+      - copybins
+      env:
+      - name: ROOK_PATH
+        value: /rook
+      image: rook/ceph:v0.9.3
+      imagePullPolicy: IfNotPresent
+      name: copy-bins
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /rook
+        name: rook-binaries
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-osd-token-nqs62
+        readOnly: true
+    nodeName: astoycos-ocp-vlft2-worker-jfbd6
+    nodeSelector:
+      kubernetes.io/hostname: astoycos-ocp-vlft2-worker-jfbd6
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1000810000
+      seLinuxOptions:
+        level: s0:c28,c27
+    serviceAccount: rook-ceph-osd
+    serviceAccountName: rook-ceph-osd
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - hostPath:
+        path: /var/lib/rook
+        type: ""
+      name: rook-data
+    - emptyDir: {}
+      name: ceph-default-config-dir
+    - configMap:
+        defaultMode: 420
+        items:
+        - key: config
+          path: override.conf
+        name: rook-config-override
+      name: rook-config-override
+    - emptyDir: {}
+      name: rook-binaries
+    - name: rook-ceph-osd-token-nqs62
+      secret:
+        defaultMode: 420
+        secretName: rook-ceph-osd-token-nqs62
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:01:44Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:01:45Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:01:45Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:01:42Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: cri-o://b0def410ea4de55a4ce93c86407ad0a59536836f631ec1122dc3deeb171c8f6a
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: osd
+      ready: true
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2020-04-21T22:01:44Z"
+    hostIP: 10.1.0.13
+    initContainerStatuses:
+    - containerID: cri-o://6572125d5a3f4a448c302af0035b8a86cc7537806cff8e095dc12711cad2368b
+      image: docker.io/rook/ceph:v0.9.3
+      imageID: docker.io/rook/ceph@sha256:38ba0ae4e3a0a0c3b5e5a4605f58d47e997f06b2a19ad2a35d4a2bd9268d3b30
+      lastState: {}
+      name: config-init
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://6572125d5a3f4a448c302af0035b8a86cc7537806cff8e095dc12711cad2368b
+          exitCode: 0
+          finishedAt: "2020-04-21T22:01:42Z"
+          reason: Completed
+          startedAt: "2020-04-21T22:01:42Z"
+    - containerID: cri-o://0e39f27a97308c1e0b669a9b46556deb5792dc040581d3e285202181694dbc9f
+      image: docker.io/rook/ceph:v0.9.3
+      imageID: docker.io/rook/ceph@sha256:38ba0ae4e3a0a0c3b5e5a4605f58d47e997f06b2a19ad2a35d4a2bd9268d3b30
+      lastState: {}
+      name: copy-bins
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://0e39f27a97308c1e0b669a9b46556deb5792dc040581d3e285202181694dbc9f
+          exitCode: 0
+          finishedAt: "2020-04-21T22:01:43Z"
+          reason: Completed
+          startedAt: "2020-04-21T22:01:43Z"
+    phase: Running
+    podIP: 10.129.0.173
+    podIPs:
+    - ip: 10.129.0.173
+    qosClass: BestEffort
+    startTime: "2020-04-21T22:01:39Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      k8s.v1.cni.cncf.io/networks-status: |-
+        [{
+            "name": "openshift-sdn",
+            "interface": "eth0",
+            "ips": [
+                "10.130.0.59"
+            ],
+            "dns": {},
+            "default-route": [
+                "10.130.0.1"
+            ]
+        }]
+      openshift.io/scc: rook-ceph
+    creationTimestamp: "2020-04-21T22:02:11Z"
+    generateName: rook-ceph-osd-1-7b9cfb9964-
+    labels:
+      app: rook-ceph-osd
+      ceph-osd-id: "1"
+      pod-template-hash: 7b9cfb9964
+      rook_cluster: rook-ceph
+    name: rook-ceph-osd-1-7b9cfb9964-tnm5j
+    namespace: rook-ceph
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: rook-ceph-osd-1-7b9cfb9964
+      uid: 099f874d-e6e7-4c10-9731-387974fa5171
+    resourceVersion: "4274975"
+    selfLink: /api/v1/namespaces/rook-ceph/pods/rook-ceph-osd-1-7b9cfb9964-tnm5j
+    uid: 1d31b7e5-7781-4f16-8376-d001c164066b
+  spec:
+    affinity: {}
+    containers:
+    - args:
+      - --foreground
+      - --id
+      - "1"
+      - --conf
+      - /var/lib/rook/osd1/rook-ceph.config
+      - --osd-data
+      - /var/lib/rook/osd1
+      - --keyring
+      - /var/lib/rook/osd1/keyring
+      - --cluster
+      - rook-ceph
+      - --osd-uuid
+      - acbc2909-fbab-40db-94c5-68831ec1229b
+      - --osd-journal=/var/lib/rook/osd1/journal
+      command:
+      - ceph-osd
+      env:
+      - name: ROOK_NODE_NAME
+        value: astoycos-ocp-vlft2-worker-qmjmh
+      - name: ROOK_PRIVATE_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_PUBLIC_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: TINI_SUBREAPER
+      - name: POD_NAME
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.name
+      - name: POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.namespace
+      - name: NODE_NAME
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: spec.nodeName
+      - name: ROOK_OSD_UUID
+        value: acbc2909-fbab-40db-94c5-68831ec1229b
+      - name: ROOK_OSD_ID
+        value: "1"
+      - name: ROOK_OSD_STORE_TYPE
+        value: filestore
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: osd
+      resources: {}
+      securityContext:
+        privileged: true
+        readOnlyRootFilesystem: false
+        runAsUser: 0
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /rook
+        name: rook-binaries
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-osd-token-nqs62
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    hostPID: true
+    imagePullSecrets:
+    - name: rook-ceph-osd-dockercfg-fjpfw
+    initContainers:
+    - args:
+      - ceph
+      - osd
+      - init
+      env:
+      - name: ROOK_NODE_NAME
+        value: astoycos-ocp-vlft2-worker-qmjmh
+      - name: ROOK_CLUSTER_ID
+        value: a94c7d79-798a-49d2-b838-2628e5019de5
+      - name: ROOK_PRIVATE_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_PUBLIC_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_CLUSTER_NAME
+        value: rook-ceph
+      - name: ROOK_MON_ENDPOINTS
+        valueFrom:
+          configMapKeyRef:
+            key: data
+            name: rook-ceph-mon-endpoints
+      - name: ROOK_MON_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: mon-secret
+            name: rook-ceph-mon
+      - name: ROOK_ADMIN_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: admin-secret
+            name: rook-ceph-mon
+      - name: ROOK_CONFIG_DIR
+        value: /var/lib/rook
+      - name: ROOK_CEPH_CONFIG_OVERRIDE
+        value: /etc/rook/config/override.conf
+      - name: ROOK_FSID
+        valueFrom:
+          secretKeyRef:
+            key: fsid
+            name: rook-ceph-mon
+      - name: ROOK_OSD_DATABASE_SIZE
+        value: "1024"
+      - name: ROOK_OSD_JOURNAL_SIZE
+        value: "1024"
+      - name: ROOK_OSDS_PER_DEVICE
+        value: "1"
+      - name: TINI_SUBREAPER
+      - name: ROOK_OSD_ID
+        value: "1"
+      image: rook/ceph:v0.9.3
+      imagePullPolicy: IfNotPresent
+      name: config-init
+      resources: {}
+      securityContext:
+        privileged: true
+        readOnlyRootFilesystem: false
+        runAsUser: 0
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /etc/rook/config
+        name: rook-config-override
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-osd-token-nqs62
+        readOnly: true
+    - args:
+      - ceph
+      - osd
+      - copybins
+      env:
+      - name: ROOK_PATH
+        value: /rook
+      image: rook/ceph:v0.9.3
+      imagePullPolicy: IfNotPresent
+      name: copy-bins
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /rook
+        name: rook-binaries
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-osd-token-nqs62
+        readOnly: true
+    nodeName: astoycos-ocp-vlft2-worker-qmjmh
+    nodeSelector:
+      kubernetes.io/hostname: astoycos-ocp-vlft2-worker-qmjmh
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1000810000
+      seLinuxOptions:
+        level: s0:c28,c27
+    serviceAccount: rook-ceph-osd
+    serviceAccountName: rook-ceph-osd
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - hostPath:
+        path: /var/lib/rook
+        type: ""
+      name: rook-data
+    - emptyDir: {}
+      name: ceph-default-config-dir
+    - configMap:
+        defaultMode: 420
+        items:
+        - key: config
+          path: override.conf
+        name: rook-config-override
+      name: rook-config-override
+    - emptyDir: {}
+      name: rook-binaries
+    - name: rook-ceph-osd-token-nqs62
+      secret:
+        defaultMode: 420
+        secretName: rook-ceph-osd-token-nqs62
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:02:07Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:02:08Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:02:08Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:02:11Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: cri-o://0925db04bb2f12f9bfb085665ca42e87cdce976dc5bc9a0196a7fa07053846fb
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: osd
+      ready: true
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2020-04-21T22:02:08Z"
+    hostIP: 10.1.0.35
+    initContainerStatuses:
+    - containerID: cri-o://f0bcda797950ea6b7e12de993f68a59b715c2c9472a0ce8be9f819bb4a47eb9c
+      image: docker.io/rook/ceph:v0.9.3
+      imageID: docker.io/rook/ceph@sha256:38ba0ae4e3a0a0c3b5e5a4605f58d47e997f06b2a19ad2a35d4a2bd9268d3b30
+      lastState: {}
+      name: config-init
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://f0bcda797950ea6b7e12de993f68a59b715c2c9472a0ce8be9f819bb4a47eb9c
+          exitCode: 0
+          finishedAt: "2020-04-21T22:02:06Z"
+          reason: Completed
+          startedAt: "2020-04-21T22:02:05Z"
+    - containerID: cri-o://e43cc96f941bec886cfab8477113dae2f45db36f5017e2027dc413b2236284ad
+      image: docker.io/rook/ceph:v0.9.3
+      imageID: docker.io/rook/ceph@sha256:38ba0ae4e3a0a0c3b5e5a4605f58d47e997f06b2a19ad2a35d4a2bd9268d3b30
+      lastState: {}
+      name: copy-bins
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://e43cc96f941bec886cfab8477113dae2f45db36f5017e2027dc413b2236284ad
+          exitCode: 0
+          finishedAt: "2020-04-21T22:02:07Z"
+          reason: Completed
+          startedAt: "2020-04-21T22:02:07Z"
+    phase: Running
+    podIP: 10.130.0.59
+    podIPs:
+    - ip: 10.130.0.59
+    qosClass: BestEffort
+    startTime: "2020-04-21T22:02:03Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      k8s.v1.cni.cncf.io/networks-status: |-
+        [{
+            "name": "openshift-sdn",
+            "interface": "eth0",
+            "ips": [
+                "10.131.0.29"
+            ],
+            "dns": {},
+            "default-route": [
+                "10.131.0.1"
+            ]
+        }]
+      openshift.io/scc: rook-ceph
+    creationTimestamp: "2020-04-21T22:02:25Z"
+    generateName: rook-ceph-osd-2-69ff64744d-
+    labels:
+      app: rook-ceph-osd
+      ceph-osd-id: "2"
+      pod-template-hash: 69ff64744d
+      rook_cluster: rook-ceph
+    name: rook-ceph-osd-2-69ff64744d-p7gm2
+    namespace: rook-ceph
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: rook-ceph-osd-2-69ff64744d
+      uid: a7547ad5-a814-49b0-bf7c-19e17e819939
+    resourceVersion: "4275077"
+    selfLink: /api/v1/namespaces/rook-ceph/pods/rook-ceph-osd-2-69ff64744d-p7gm2
+    uid: 7abd111a-fe38-4ee2-9c19-c2014afe20d6
+  spec:
+    affinity: {}
+    containers:
+    - args:
+      - --foreground
+      - --id
+      - "2"
+      - --conf
+      - /var/lib/rook/osd2/rook-ceph.config
+      - --osd-data
+      - /var/lib/rook/osd2
+      - --keyring
+      - /var/lib/rook/osd2/keyring
+      - --cluster
+      - rook-ceph
+      - --osd-uuid
+      - d353eefe-68eb-4ae5-9425-a7c9053e0086
+      - --osd-journal=/var/lib/rook/osd2/journal
+      command:
+      - ceph-osd
+      env:
+      - name: ROOK_NODE_NAME
+        value: astoycos-ocp-vlft2-worker-r7nbp
+      - name: ROOK_PRIVATE_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_PUBLIC_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: TINI_SUBREAPER
+      - name: POD_NAME
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.name
+      - name: POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.namespace
+      - name: NODE_NAME
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: spec.nodeName
+      - name: ROOK_OSD_UUID
+        value: d353eefe-68eb-4ae5-9425-a7c9053e0086
+      - name: ROOK_OSD_ID
+        value: "2"
+      - name: ROOK_OSD_STORE_TYPE
+        value: filestore
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: osd
+      resources: {}
+      securityContext:
+        privileged: true
+        readOnlyRootFilesystem: false
+        runAsUser: 0
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /rook
+        name: rook-binaries
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-osd-token-nqs62
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    hostPID: true
+    imagePullSecrets:
+    - name: rook-ceph-osd-dockercfg-fjpfw
+    initContainers:
+    - args:
+      - ceph
+      - osd
+      - init
+      env:
+      - name: ROOK_NODE_NAME
+        value: astoycos-ocp-vlft2-worker-r7nbp
+      - name: ROOK_CLUSTER_ID
+        value: a94c7d79-798a-49d2-b838-2628e5019de5
+      - name: ROOK_PRIVATE_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_PUBLIC_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_CLUSTER_NAME
+        value: rook-ceph
+      - name: ROOK_MON_ENDPOINTS
+        valueFrom:
+          configMapKeyRef:
+            key: data
+            name: rook-ceph-mon-endpoints
+      - name: ROOK_MON_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: mon-secret
+            name: rook-ceph-mon
+      - name: ROOK_ADMIN_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: admin-secret
+            name: rook-ceph-mon
+      - name: ROOK_CONFIG_DIR
+        value: /var/lib/rook
+      - name: ROOK_CEPH_CONFIG_OVERRIDE
+        value: /etc/rook/config/override.conf
+      - name: ROOK_FSID
+        valueFrom:
+          secretKeyRef:
+            key: fsid
+            name: rook-ceph-mon
+      - name: ROOK_OSD_DATABASE_SIZE
+        value: "1024"
+      - name: ROOK_OSD_JOURNAL_SIZE
+        value: "1024"
+      - name: ROOK_OSDS_PER_DEVICE
+        value: "1"
+      - name: TINI_SUBREAPER
+      - name: ROOK_OSD_ID
+        value: "2"
+      image: rook/ceph:v0.9.3
+      imagePullPolicy: IfNotPresent
+      name: config-init
+      resources: {}
+      securityContext:
+        privileged: true
+        readOnlyRootFilesystem: false
+        runAsUser: 0
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /etc/rook/config
+        name: rook-config-override
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-osd-token-nqs62
+        readOnly: true
+    - args:
+      - ceph
+      - osd
+      - copybins
+      env:
+      - name: ROOK_PATH
+        value: /rook
+      image: rook/ceph:v0.9.3
+      imagePullPolicy: IfNotPresent
+      name: copy-bins
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /rook
+        name: rook-binaries
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-osd-token-nqs62
+        readOnly: true
+    nodeName: astoycos-ocp-vlft2-worker-r7nbp
+    nodeSelector:
+      kubernetes.io/hostname: astoycos-ocp-vlft2-worker-r7nbp
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1000810000
+      seLinuxOptions:
+        level: s0:c28,c27
+    serviceAccount: rook-ceph-osd
+    serviceAccountName: rook-ceph-osd
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - hostPath:
+        path: /var/lib/rook
+        type: ""
+      name: rook-data
+    - emptyDir: {}
+      name: ceph-default-config-dir
+    - configMap:
+        defaultMode: 420
+        items:
+        - key: config
+          path: override.conf
+        name: rook-config-override
+      name: rook-config-override
+    - emptyDir: {}
+      name: rook-binaries
+    - name: rook-ceph-osd-token-nqs62
+      secret:
+        defaultMode: 420
+        secretName: rook-ceph-osd-token-nqs62
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:01:42Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:01:43Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:01:43Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:02:25Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: cri-o://b6b520e6c3b85ac8d9b3835c2c6443bbd92499f5982cc71a74b394ad6fcb19e0
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: osd
+      ready: true
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2020-04-21T22:01:42Z"
+    hostIP: 10.1.0.16
+    initContainerStatuses:
+    - containerID: cri-o://a5f8bea1929e68facdb7e8152d725c93c71617c6b388e2e4ff99cf680335dec6
+      image: docker.io/rook/ceph:v0.9.3
+      imageID: docker.io/rook/ceph@sha256:38ba0ae4e3a0a0c3b5e5a4605f58d47e997f06b2a19ad2a35d4a2bd9268d3b30
+      lastState: {}
+      name: config-init
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://a5f8bea1929e68facdb7e8152d725c93c71617c6b388e2e4ff99cf680335dec6
+          exitCode: 0
+          finishedAt: "2020-04-21T22:01:40Z"
+          reason: Completed
+          startedAt: "2020-04-21T22:01:40Z"
+    - containerID: cri-o://012a5ad33b9f6f4ce44330383a234933667349f46c7330099fb608d087620970
+      image: docker.io/rook/ceph:v0.9.3
+      imageID: docker.io/rook/ceph@sha256:38ba0ae4e3a0a0c3b5e5a4605f58d47e997f06b2a19ad2a35d4a2bd9268d3b30
+      lastState: {}
+      name: copy-bins
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://012a5ad33b9f6f4ce44330383a234933667349f46c7330099fb608d087620970
+          exitCode: 0
+          finishedAt: "2020-04-21T22:01:42Z"
+          reason: Completed
+          startedAt: "2020-04-21T22:01:41Z"
+    phase: Running
+    podIP: 10.131.0.29
+    podIPs:
+    - ip: 10.131.0.29
+    qosClass: BestEffort
+    startTime: "2020-04-21T22:01:38Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      k8s.v1.cni.cncf.io/networks-status: ""
+      openshift.io/scc: rook-ceph
+    creationTimestamp: "2020-04-21T22:01:10Z"
+    generateName: rook-ceph-osd-prepare-astoycos-ocp-vlft2-worker-jfbd6-
+    labels:
+      app: rook-ceph-osd-prepare
+      controller-uid: ed7b1627-35c0-46d3-b004-5132a2ce3364
+      job-name: rook-ceph-osd-prepare-astoycos-ocp-vlft2-worker-jfbd6
+      rook_cluster: rook-ceph
+    name: rook-ceph-osd-prepare-astoycos-ocp-vlft2-worker-jfbd6-nxgmt
+    namespace: rook-ceph
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: rook-ceph-osd-prepare-astoycos-ocp-vlft2-worker-jfbd6
+      uid: ed7b1627-35c0-46d3-b004-5132a2ce3364
+    resourceVersion: "4274653"
+    selfLink: /api/v1/namespaces/rook-ceph/pods/rook-ceph-osd-prepare-astoycos-ocp-vlft2-worker-jfbd6-nxgmt
+    uid: 10c20d8c-67be-42cc-823a-d724fc369f63
+  spec:
+    affinity: {}
+    containers:
+    - args:
+      - ceph
+      - osd
+      - copybins
+      env:
+      - name: ROOK_PATH
+        value: /rook
+      image: rook/ceph:v0.9.3
+      imagePullPolicy: IfNotPresent
+      name: copy-bins
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /rook
+        name: rook-binaries
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-osd-token-nqs62
+        readOnly: true
+    - args:
+      - --
+      - /rook/rook
+      - ceph
+      - osd
+      - provision
+      command:
+      - /rook/tini
+      env:
+      - name: ROOK_NODE_NAME
+        value: astoycos-ocp-vlft2-worker-jfbd6
+      - name: ROOK_CLUSTER_ID
+        value: a94c7d79-798a-49d2-b838-2628e5019de5
+      - name: ROOK_PRIVATE_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_PUBLIC_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_CLUSTER_NAME
+        value: rook-ceph
+      - name: ROOK_MON_ENDPOINTS
+        valueFrom:
+          configMapKeyRef:
+            key: data
+            name: rook-ceph-mon-endpoints
+      - name: ROOK_MON_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: mon-secret
+            name: rook-ceph-mon
+      - name: ROOK_ADMIN_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: admin-secret
+            name: rook-ceph-mon
+      - name: ROOK_CONFIG_DIR
+        value: /var/lib/rook
+      - name: ROOK_CEPH_CONFIG_OVERRIDE
+        value: /etc/rook/config/override.conf
+      - name: ROOK_FSID
+        valueFrom:
+          secretKeyRef:
+            key: fsid
+            name: rook-ceph-mon
+      - name: ROOK_OSD_DATABASE_SIZE
+        value: "1024"
+      - name: ROOK_OSD_JOURNAL_SIZE
+        value: "1024"
+      - name: ROOK_OSDS_PER_DEVICE
+        value: "1"
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: provision
+      resources: {}
+      securityContext:
+        privileged: true
+        readOnlyRootFilesystem: false
+        runAsNonRoot: false
+        runAsUser: 0
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /rook
+        name: rook-binaries
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-osd-token-nqs62
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    imagePullSecrets:
+    - name: rook-ceph-osd-dockercfg-fjpfw
+    nodeName: astoycos-ocp-vlft2-worker-jfbd6
+    nodeSelector:
+      kubernetes.io/hostname: astoycos-ocp-vlft2-worker-jfbd6
+    priority: 0
+    restartPolicy: OnFailure
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1000810000
+      seLinuxOptions:
+        level: s0:c28,c27
+    serviceAccount: rook-ceph-osd
+    serviceAccountName: rook-ceph-osd
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - hostPath:
+        path: /var/lib/rook
+        type: ""
+      name: rook-data
+    - emptyDir: {}
+      name: ceph-default-config-dir
+    - configMap:
+        defaultMode: 420
+        items:
+        - key: config
+          path: override.conf
+        name: rook-config-override
+      name: rook-config-override
+    - emptyDir: {}
+      name: rook-binaries
+    - name: rook-ceph-osd-token-nqs62
+      secret:
+        defaultMode: 420
+        secretName: rook-ceph-osd-token-nqs62
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:01:06Z"
+      reason: PodCompleted
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:01:06Z"
+      reason: PodCompleted
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:01:06Z"
+      reason: PodCompleted
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:01:10Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: cri-o://9a5d73cfa829473f4f1de456714289bcb12931f720917856fa12eb0f59cab13f
+      image: docker.io/rook/ceph:v0.9.3
+      imageID: docker.io/rook/ceph@sha256:38ba0ae4e3a0a0c3b5e5a4605f58d47e997f06b2a19ad2a35d4a2bd9268d3b30
+      lastState: {}
+      name: copy-bins
+      ready: false
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: cri-o://9a5d73cfa829473f4f1de456714289bcb12931f720917856fa12eb0f59cab13f
+          exitCode: 0
+          finishedAt: "2020-04-21T22:01:09Z"
+          reason: Completed
+          startedAt: "2020-04-21T22:01:09Z"
+    - containerID: cri-o://05edd36480a122449cc6e805f0f16e0cfd27edca60e71a911d6cd870b6a55519
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: provision
+      ready: false
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: cri-o://05edd36480a122449cc6e805f0f16e0cfd27edca60e71a911d6cd870b6a55519
+          exitCode: 0
+          finishedAt: "2020-04-21T22:01:39Z"
+          reason: Completed
+          startedAt: "2020-04-21T22:01:10Z"
+    hostIP: 10.1.0.13
+    phase: Succeeded
+    podIP: 10.129.0.172
+    podIPs:
+    - ip: 10.129.0.172
+    qosClass: BestEffort
+    startTime: "2020-04-21T22:01:06Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      k8s.v1.cni.cncf.io/networks-status: ""
+      openshift.io/scc: rook-ceph
+    creationTimestamp: "2020-04-21T22:01:10Z"
+    generateName: rook-ceph-osd-prepare-astoycos-ocp-vlft2-worker-qmjmh-
+    labels:
+      app: rook-ceph-osd-prepare
+      controller-uid: 0886ab99-f932-4705-8ddd-e1d2f6c90c4d
+      job-name: rook-ceph-osd-prepare-astoycos-ocp-vlft2-worker-qmjmh
+      rook_cluster: rook-ceph
+    name: rook-ceph-osd-prepare-astoycos-ocp-vlft2-worker-qmjmh-2szlf
+    namespace: rook-ceph
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: rook-ceph-osd-prepare-astoycos-ocp-vlft2-worker-qmjmh
+      uid: 0886ab99-f932-4705-8ddd-e1d2f6c90c4d
+    resourceVersion: "4274994"
+    selfLink: /api/v1/namespaces/rook-ceph/pods/rook-ceph-osd-prepare-astoycos-ocp-vlft2-worker-qmjmh-2szlf
+    uid: af30e30b-5494-4bb4-b4ae-30e78e47b1cb
+  spec:
+    affinity: {}
+    containers:
+    - args:
+      - ceph
+      - osd
+      - copybins
+      env:
+      - name: ROOK_PATH
+        value: /rook
+      image: rook/ceph:v0.9.3
+      imagePullPolicy: IfNotPresent
+      name: copy-bins
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /rook
+        name: rook-binaries
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-osd-token-nqs62
+        readOnly: true
+    - args:
+      - --
+      - /rook/rook
+      - ceph
+      - osd
+      - provision
+      command:
+      - /rook/tini
+      env:
+      - name: ROOK_NODE_NAME
+        value: astoycos-ocp-vlft2-worker-qmjmh
+      - name: ROOK_CLUSTER_ID
+        value: a94c7d79-798a-49d2-b838-2628e5019de5
+      - name: ROOK_PRIVATE_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_PUBLIC_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_CLUSTER_NAME
+        value: rook-ceph
+      - name: ROOK_MON_ENDPOINTS
+        valueFrom:
+          configMapKeyRef:
+            key: data
+            name: rook-ceph-mon-endpoints
+      - name: ROOK_MON_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: mon-secret
+            name: rook-ceph-mon
+      - name: ROOK_ADMIN_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: admin-secret
+            name: rook-ceph-mon
+      - name: ROOK_CONFIG_DIR
+        value: /var/lib/rook
+      - name: ROOK_CEPH_CONFIG_OVERRIDE
+        value: /etc/rook/config/override.conf
+      - name: ROOK_FSID
+        valueFrom:
+          secretKeyRef:
+            key: fsid
+            name: rook-ceph-mon
+      - name: ROOK_OSD_DATABASE_SIZE
+        value: "1024"
+      - name: ROOK_OSD_JOURNAL_SIZE
+        value: "1024"
+      - name: ROOK_OSDS_PER_DEVICE
+        value: "1"
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: provision
+      resources: {}
+      securityContext:
+        privileged: true
+        readOnlyRootFilesystem: false
+        runAsNonRoot: false
+        runAsUser: 0
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /rook
+        name: rook-binaries
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-osd-token-nqs62
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    imagePullSecrets:
+    - name: rook-ceph-osd-dockercfg-fjpfw
+    nodeName: astoycos-ocp-vlft2-worker-qmjmh
+    nodeSelector:
+      kubernetes.io/hostname: astoycos-ocp-vlft2-worker-qmjmh
+    priority: 0
+    restartPolicy: OnFailure
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1000810000
+      seLinuxOptions:
+        level: s0:c28,c27
+    serviceAccount: rook-ceph-osd
+    serviceAccountName: rook-ceph-osd
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - hostPath:
+        path: /var/lib/rook
+        type: ""
+      name: rook-data
+    - emptyDir: {}
+      name: ceph-default-config-dir
+    - configMap:
+        defaultMode: 420
+        items:
+        - key: config
+          path: override.conf
+        name: rook-config-override
+      name: rook-config-override
+    - emptyDir: {}
+      name: rook-binaries
+    - name: rook-ceph-osd-token-nqs62
+      secret:
+        defaultMode: 420
+        secretName: rook-ceph-osd-token-nqs62
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:01:02Z"
+      reason: PodCompleted
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:01:02Z"
+      reason: PodCompleted
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:01:02Z"
+      reason: PodCompleted
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:01:10Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: cri-o://9571735b7a05726acd032ef3f26fca1caa3a1578f391eb3470448240b6209497
+      image: docker.io/rook/ceph:v0.9.3
+      imageID: docker.io/rook/ceph@sha256:38ba0ae4e3a0a0c3b5e5a4605f58d47e997f06b2a19ad2a35d4a2bd9268d3b30
+      lastState: {}
+      name: copy-bins
+      ready: false
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: cri-o://9571735b7a05726acd032ef3f26fca1caa3a1578f391eb3470448240b6209497
+          exitCode: 0
+          finishedAt: "2020-04-21T22:01:05Z"
+          reason: Completed
+          startedAt: "2020-04-21T22:01:05Z"
+    - containerID: cri-o://7512d0d887ed6f5498f88c09711089a5233225dd26147642d31878365c4c2353
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: provision
+      ready: false
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: cri-o://7512d0d887ed6f5498f88c09711089a5233225dd26147642d31878365c4c2353
+          exitCode: 0
+          finishedAt: "2020-04-21T22:02:03Z"
+          reason: Completed
+          startedAt: "2020-04-21T22:01:05Z"
+    hostIP: 10.1.0.35
+    phase: Succeeded
+    podIP: 10.130.0.58
+    podIPs:
+    - ip: 10.130.0.58
+    qosClass: BestEffort
+    startTime: "2020-04-21T22:01:02Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      k8s.v1.cni.cncf.io/networks-status: |-
+        [{
+            "name": "openshift-sdn",
+            "interface": "eth0",
+            "ips": [
+                "10.131.0.28"
+            ],
+            "dns": {},
+            "default-route": [
+                "10.131.0.1"
+            ]
+        }]
+      openshift.io/scc: rook-ceph
+    creationTimestamp: "2020-04-21T22:01:10Z"
+    generateName: rook-ceph-osd-prepare-astoycos-ocp-vlft2-worker-r7nbp-
+    labels:
+      app: rook-ceph-osd-prepare
+      controller-uid: 1dabaa36-5b6f-49cd-b87a-90d01789d087
+      job-name: rook-ceph-osd-prepare-astoycos-ocp-vlft2-worker-r7nbp
+      rook_cluster: rook-ceph
+    name: rook-ceph-osd-prepare-astoycos-ocp-vlft2-worker-r7nbp-q9jb6
+    namespace: rook-ceph
+    ownerReferences:
+    - apiVersion: batch/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Job
+      name: rook-ceph-osd-prepare-astoycos-ocp-vlft2-worker-r7nbp
+      uid: 1dabaa36-5b6f-49cd-b87a-90d01789d087
+    resourceVersion: "4275038"
+    selfLink: /api/v1/namespaces/rook-ceph/pods/rook-ceph-osd-prepare-astoycos-ocp-vlft2-worker-r7nbp-q9jb6
+    uid: 9b848582-ff69-41dd-805d-0889cabdbe3a
+  spec:
+    affinity: {}
+    containers:
+    - args:
+      - ceph
+      - osd
+      - copybins
+      env:
+      - name: ROOK_PATH
+        value: /rook
+      image: rook/ceph:v0.9.3
+      imagePullPolicy: IfNotPresent
+      name: copy-bins
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /rook
+        name: rook-binaries
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-osd-token-nqs62
+        readOnly: true
+    - args:
+      - --
+      - /rook/rook
+      - ceph
+      - osd
+      - provision
+      command:
+      - /rook/tini
+      env:
+      - name: ROOK_NODE_NAME
+        value: astoycos-ocp-vlft2-worker-r7nbp
+      - name: ROOK_CLUSTER_ID
+        value: a94c7d79-798a-49d2-b838-2628e5019de5
+      - name: ROOK_PRIVATE_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_PUBLIC_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_CLUSTER_NAME
+        value: rook-ceph
+      - name: ROOK_MON_ENDPOINTS
+        valueFrom:
+          configMapKeyRef:
+            key: data
+            name: rook-ceph-mon-endpoints
+      - name: ROOK_MON_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: mon-secret
+            name: rook-ceph-mon
+      - name: ROOK_ADMIN_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: admin-secret
+            name: rook-ceph-mon
+      - name: ROOK_CONFIG_DIR
+        value: /var/lib/rook
+      - name: ROOK_CEPH_CONFIG_OVERRIDE
+        value: /etc/rook/config/override.conf
+      - name: ROOK_FSID
+        valueFrom:
+          secretKeyRef:
+            key: fsid
+            name: rook-ceph-mon
+      - name: ROOK_OSD_DATABASE_SIZE
+        value: "1024"
+      - name: ROOK_OSD_JOURNAL_SIZE
+        value: "1024"
+      - name: ROOK_OSDS_PER_DEVICE
+        value: "1"
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: provision
+      resources: {}
+      securityContext:
+        privileged: true
+        readOnlyRootFilesystem: false
+        runAsNonRoot: false
+        runAsUser: 0
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /rook
+        name: rook-binaries
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: rook-ceph-osd-token-nqs62
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    imagePullSecrets:
+    - name: rook-ceph-osd-dockercfg-fjpfw
+    nodeName: astoycos-ocp-vlft2-worker-r7nbp
+    nodeSelector:
+      kubernetes.io/hostname: astoycos-ocp-vlft2-worker-r7nbp
+    priority: 0
+    restartPolicy: OnFailure
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1000810000
+      seLinuxOptions:
+        level: s0:c28,c27
+    serviceAccount: rook-ceph-osd
+    serviceAccountName: rook-ceph-osd
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - hostPath:
+        path: /var/lib/rook
+        type: ""
+      name: rook-data
+    - emptyDir: {}
+      name: ceph-default-config-dir
+    - configMap:
+        defaultMode: 420
+        items:
+        - key: config
+          path: override.conf
+        name: rook-config-override
+      name: rook-config-override
+    - emptyDir: {}
+      name: rook-binaries
+    - name: rook-ceph-osd-token-nqs62
+      secret:
+        defaultMode: 420
+        secretName: rook-ceph-osd-token-nqs62
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:00:22Z"
+      reason: PodCompleted
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:00:22Z"
+      reason: PodCompleted
+      status: "False"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:00:22Z"
+      reason: PodCompleted
+      status: "False"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:01:10Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: cri-o://acacce8d2e84a1fb349181a0b7be82bec851eece98ba028251f1ca4ac686b223
+      image: docker.io/rook/ceph:v0.9.3
+      imageID: docker.io/rook/ceph@sha256:38ba0ae4e3a0a0c3b5e5a4605f58d47e997f06b2a19ad2a35d4a2bd9268d3b30
+      lastState: {}
+      name: copy-bins
+      ready: false
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: cri-o://acacce8d2e84a1fb349181a0b7be82bec851eece98ba028251f1ca4ac686b223
+          exitCode: 0
+          finishedAt: "2020-04-21T22:00:25Z"
+          reason: Completed
+          startedAt: "2020-04-21T22:00:25Z"
+    - containerID: cri-o://39f46bb0efe9bf347991e8a0f5780fd767e14096ecea46dd1e8f0fe538f82eec
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: provision
+      ready: false
+      restartCount: 0
+      started: false
+      state:
+        terminated:
+          containerID: cri-o://39f46bb0efe9bf347991e8a0f5780fd767e14096ecea46dd1e8f0fe538f82eec
+          exitCode: 0
+          finishedAt: "2020-04-21T22:01:37Z"
+          reason: Completed
+          startedAt: "2020-04-21T22:00:26Z"
+    hostIP: 10.1.0.16
+    phase: Succeeded
+    podIP: 10.131.0.28
+    podIPs:
+    - ip: 10.131.0.28
+    qosClass: BestEffort
+    startTime: "2020-04-21T22:00:22Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      k8s.v1.cni.cncf.io/networks-status: |-
+        [{
+            "name": "openshift-sdn",
+            "interface": "eth0",
+            "ips": [
+                "10.130.0.60"
+            ],
+            "dns": {},
+            "default-route": [
+                "10.130.0.1"
+            ]
+        }]
+      openshift.io/scc: restricted
+    creationTimestamp: "2020-04-21T22:07:50Z"
+    generateName: rook-ceph-rgw-my-store-8585c445b4-
+    labels:
+      app: rook-ceph-rgw
+      pod-template-hash: 8585c445b4
+      rook_cluster: rook-ceph
+      rook_object_store: my-store
+    name: rook-ceph-rgw-my-store-8585c445b4-4dgk7
+    namespace: rook-ceph
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: rook-ceph-rgw-my-store-8585c445b4
+      uid: 79831b17-d772-47b2-bc18-29903bba6b4d
+    resourceVersion: "4276760"
+    selfLink: /api/v1/namespaces/rook-ceph/pods/rook-ceph-rgw-my-store-8585c445b4-4dgk7
+    uid: bca470b7-bbf9-4701-8d09-08dc3c182183
+  spec:
+    affinity: {}
+    containers:
+    - args:
+      - --foreground
+      - --name=client.radosgw.gateway
+      - --rgw-mime-types-file=/var/lib/rook/rgw/mime.types
+      command:
+      - radosgw
+      env:
+      - name: POD_NAME
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.name
+      - name: POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.namespace
+      - name: NODE_NAME
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: spec.nodeName
+      image: ceph/ceph:v13.2.4-20190109
+      imagePullPolicy: IfNotPresent
+      name: rgw
+      resources: {}
+      securityContext:
+        capabilities:
+          drop:
+          - KILL
+          - MKNOD
+          - SETGID
+          - SETUID
+        runAsUser: 1000810000
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-j8ssz
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    imagePullSecrets:
+    - name: default-dockercfg-phmd8
+    initContainers:
+    - args:
+      - ceph
+      - rgw
+      - --config-dir=/var/lib/rook
+      - --rgw-name=my-store
+      - --rgw-port=8080
+      - --rgw-secure-port=0
+      env:
+      - name: ROOK_RGW_KEYRING
+        valueFrom:
+          secretKeyRef:
+            key: keyring
+            name: rook-ceph-rgw-my-store
+      - name: ROOK_PRIVATE_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_PUBLIC_IP
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: status.podIP
+      - name: ROOK_CLUSTER_NAME
+        value: rook-ceph
+      - name: ROOK_MON_ENDPOINTS
+        valueFrom:
+          configMapKeyRef:
+            key: data
+            name: rook-ceph-mon-endpoints
+      - name: ROOK_MON_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: mon-secret
+            name: rook-ceph-mon
+      - name: ROOK_CEPH_CONFIG_OVERRIDE
+        value: /etc/rook/config/override.conf
+      image: rook/ceph:v0.9.3
+      imagePullPolicy: IfNotPresent
+      name: config-init
+      resources: {}
+      securityContext:
+        capabilities:
+          drop:
+          - KILL
+          - MKNOD
+          - SETGID
+          - SETUID
+        runAsUser: 1000810000
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/lib/rook
+        name: rook-data
+      - mountPath: /etc/ceph
+        name: ceph-default-config-dir
+      - mountPath: /etc/rook/config
+        name: rook-config-override
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-j8ssz
+        readOnly: true
+    nodeName: astoycos-ocp-vlft2-worker-qmjmh
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1000810000
+      seLinuxOptions:
+        level: s0:c28,c27
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - emptyDir: {}
+      name: rook-data
+    - emptyDir: {}
+      name: ceph-default-config-dir
+    - configMap:
+        defaultMode: 420
+        items:
+        - key: config
+          path: override.conf
+        name: rook-config-override
+      name: rook-config-override
+    - name: default-token-j8ssz
+      secret:
+        defaultMode: 420
+        secretName: default-token-j8ssz
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:07:45Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:07:46Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:07:46Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T22:07:50Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: cri-o://689a2a902b6c0e6204d8c2f35961bcdfc7970e557839b18a2f83ecd20d1535b0
+      image: docker.io/ceph/ceph:v13.2.4-20190109
+      imageID: docker.io/ceph/ceph@sha256:67d0a25ddde36ae0e308617780976f2436f239f6e4a4396a388fe435487d1535
+      lastState: {}
+      name: rgw
+      ready: true
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2020-04-21T22:07:46Z"
+    hostIP: 10.1.0.35
+    initContainerStatuses:
+    - containerID: cri-o://b607e24d1f1748ffbf349a53a9bb25290f6c34e909cfcd6a54f029ae9b4ea150
+      image: docker.io/rook/ceph:v0.9.3
+      imageID: docker.io/rook/ceph@sha256:38ba0ae4e3a0a0c3b5e5a4605f58d47e997f06b2a19ad2a35d4a2bd9268d3b30
+      lastState: {}
+      name: config-init
+      ready: true
+      restartCount: 0
+      state:
+        terminated:
+          containerID: cri-o://b607e24d1f1748ffbf349a53a9bb25290f6c34e909cfcd6a54f029ae9b4ea150
+          exitCode: 0
+          finishedAt: "2020-04-21T22:07:45Z"
+          reason: Completed
+          startedAt: "2020-04-21T22:07:45Z"
+    phase: Running
+    podIP: 10.130.0.60
+    podIPs:
+    - ip: 10.130.0.60
+    qosClass: BestEffort
+    startTime: "2020-04-21T22:07:42Z"
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    annotations:
+      openshift.io/scc: rook-ceph
+    creationTimestamp: "2020-04-21T21:56:30Z"
+    generateName: rook-ceph-tools-78bddc766-
+    labels:
+      app: rook-ceph-tools
+      pod-template-hash: 78bddc766
+    name: rook-ceph-tools-78bddc766-fglfd
+    namespace: rook-ceph
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: rook-ceph-tools-78bddc766
+      uid: 0c833ded-9574-46b6-b630-7d2525a00192
+    resourceVersion: "4273331"
+    selfLink: /api/v1/namespaces/rook-ceph/pods/rook-ceph-tools-78bddc766-fglfd
+    uid: 1bbff728-5fbe-46c7-9e56-a5ca76cade73
+  spec:
+    containers:
+    - args:
+      - -g
+      - --
+      - /usr/local/bin/toolbox.sh
+      command:
+      - /tini
+      env:
+      - name: ROOK_ADMIN_SECRET
+        valueFrom:
+          secretKeyRef:
+            key: admin-secret
+            name: rook-ceph-mon
+      image: rook/ceph:v0.9.3
+      imagePullPolicy: IfNotPresent
+      name: rook-ceph-tools
+      resources: {}
+      securityContext:
+        privileged: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /dev
+        name: dev
+      - mountPath: /sys/bus
+        name: sysbus
+      - mountPath: /lib/modules
+        name: libmodules
+      - mountPath: /etc/rook
+        name: mon-endpoint-volume
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: default-token-j8ssz
+        readOnly: true
+    dnsPolicy: ClusterFirstWithHostNet
+    enableServiceLinks: true
+    hostNetwork: true
+    imagePullSecrets:
+    - name: default-dockercfg-phmd8
+    nodeName: astoycos-ocp-vlft2-worker-qmjmh
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      fsGroup: 1000810000
+      seLinuxOptions:
+        level: s0:c28,c27
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - hostPath:
+        path: /dev
+        type: ""
+      name: dev
+    - hostPath:
+        path: /sys/bus
+        type: ""
+      name: sysbus
+    - hostPath:
+        path: /lib/modules
+        type: ""
+      name: libmodules
+    - configMap:
+        defaultMode: 420
+        items:
+        - key: data
+          path: mon-endpoints
+        name: rook-ceph-mon-endpoints
+      name: mon-endpoint-volume
+    - name: default-token-j8ssz
+      secret:
+        defaultMode: 420
+        secretName: default-token-j8ssz
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:56:23Z"
+      status: "True"
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:57:28Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:57:28Z"
+      status: "True"
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: "2020-04-21T21:56:30Z"
+      status: "True"
+      type: PodScheduled
+    containerStatuses:
+    - containerID: cri-o://b7a420e44ada0d3a3f62649d00b888335ecee39f730d1a5492fcf8d4ccab2bfb
+      image: docker.io/rook/ceph:v0.9.3
+      imageID: docker.io/rook/ceph@sha256:38ba0ae4e3a0a0c3b5e5a4605f58d47e997f06b2a19ad2a35d4a2bd9268d3b30
+      lastState: {}
+      name: rook-ceph-tools
+      ready: true
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: "2020-04-21T21:57:28Z"
+    hostIP: 10.1.0.35
+    phase: Running
+    podIP: 10.1.0.35
+    podIPs:
+    - ip: 10.1.0.35
+    qosClass: BestEffort
+    startTime: "2020-04-21T21:56:23Z"
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

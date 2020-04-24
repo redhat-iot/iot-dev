@@ -17,22 +17,24 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 	"log"
 	"os"
 	"os/exec"
-	"github.com/spf13/cobra"
 )
 
-func destroyKnative(){ 
+///STILL NOT UPDATED TO Wrappers
+func destroyKnative() {
+
 	ocCommands := [][]string{}
-	ocCommands = append(ocCommands,[]string{"./oc" , "delete", "--filename", "https://github.com/knative/eventing/releases/download/v0.13.0/eventing.yaml"})
-	ocCommands = append(ocCommands,[]string{"./oc" ,"delete" ,"--selector", "knative.dev/crd-install=true" ,"--filename", "https://github.com/knative/eventing/releases/download/v0.13.0/eventing.yaml"})
-	ocCommands = append(ocCommands,[]string{"./oc" , "delete", "namespace", "knative-eventing"} )
-	ocCommands = append(ocCommands,[]string{"./oc", "delete", "knativeserving.operator.knative.dev", "knative-serving", "-n" ,"knative-serving"} )
-	ocCommands = append(ocCommands,[]string{"./oc" , "delete", "namespace", "knative-serving"} )
+	ocCommands = append(ocCommands, []string{"./oc", "delete", "--filename", "https://github.com/knative/eventing/releases/download/v0.13.0/eventing.yaml"})
+	ocCommands = append(ocCommands, []string{"./oc", "delete", "--selector", "knative.dev/crd-install=true", "--filename", "https://github.com/knative/eventing/releases/download/v0.13.0/eventing.yaml"})
+	ocCommands = append(ocCommands, []string{"./oc", "delete", "namespace", "knative-eventing"})
+	ocCommands = append(ocCommands, []string{"./oc", "delete", "knativeserving.operator.knative.dev", "knative-serving", "-n", "knative-serving"})
+	ocCommands = append(ocCommands, []string{"./oc", "delete", "namespace", "knative-serving"})
 	//ocCommands = append(ocCommands,[]string{"./oc","delete","-f","yamls/sub.yaml"} )
 	//ocCommands = append(ocCommands,[]string{"./oc","delete","-f","yamls/operatorgroup.yaml"} )
-	
+
 	for command := range ocCommands {
 		cmd := exec.Command(ocCommands[command][0], ocCommands[command][1:]...)
 		cmd.Stdout = os.Stdout
@@ -46,22 +48,22 @@ func destroyKnative(){
 
 	//delete Operator
 
-	currentCSV,err := exec.Command("bash","-c","./oc get subscription serverless-operator -n openshift-operators -o jsonpath='{.status.currentCSV}'").Output()
-	err = exec.Command("./oc" ,"delete" ,"subscription", "serverless-operator" ,"-n" ,"openshift-operators").Run()
+	currentCSV, err := exec.Command("bash", "-c", "./oc get subscription serverless-operator -n openshift-operators -o jsonpath='{.status.currentCSV}'").Output()
+	err = exec.Command("./oc", "delete", "subscription", "serverless-operator", "-n", "openshift-operators").Run()
 	if err != nil {
 		//Igonore Resource Not found error and continue, but still notify the user
 		log.Println(err)
 	}
-	err = exec.Command("./oc" ,"delete" ,"clusterserviceversion",string(currentCSV), "-n" ,"openshift-operators").Run()
+	err = exec.Command("./oc", "delete", "clusterserviceversion", string(currentCSV), "-n", "openshift-operators").Run()
 	if err != nil {
 		//Igonore Resource Not found error and continue, but still notify the user
 		log.Println(err)
 	}
-
+	os.Remove("oc")
 }
 
 // destroyCmd represents the destroy command
-var knative_destroyCmd = &cobra.Command{
+var knativeDestroyCmd = &cobra.Command{
 	Use:   "destroy",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
@@ -77,7 +79,7 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	knativeCmd.AddCommand(knative_destroyCmd)
+	knativeCmd.AddCommand(knativeDestroyCmd)
 
 	// Here you will define your flags and configuration settings.
 

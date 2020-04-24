@@ -92,7 +92,9 @@ func source(source string, sink string) {
 	}
 	defer os.Remove(tmpFile.Name())
 
-	myOutput := utils.RemoteSed(`/^ *sink:/,/^ name:/s/name: .*/name: `+sink+`/`, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/knative/sources/kafka.yaml")
+	sedCommands := []string{`/^ *sink:/,/^ name:/s/name: .*/name: ` + sink + `/`}
+
+	myOutput := utils.RemoteSed(sedCommands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/knative/sources/kafka.yaml")
 
 	tmpFile.Write(myOutput.Bytes())
 	log.Println("the Source file: ", myOutput.String())

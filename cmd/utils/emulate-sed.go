@@ -14,18 +14,29 @@ import (
 
 //RemoteSed ...
 //Use this function to emulate the bash Sed command in golang
-func RemoteSed(command string, url string) *bytes.Buffer {
+func RemoteSed(commands []string, url string) *bytes.Buffer {
 
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer resp.Body.Close()
+	originalFile := new(bytes.Buffer)
+	originalFile.ReadFrom(resp.Body)
+	//editedFile := new(bytes.Buffer)
 
-	engine, err := sed.New(strings.NewReader(command))
-	myOutput := new(bytes.Buffer)
-	myOutput.ReadFrom(engine.Wrap(resp.Body))
-	return myOutput
+	for _, command := range commands {
+		tempFile := new(bytes.Buffer)
+		engine, err := sed.New(strings.NewReader(command))
+		if err != nil {
+			log.Fatal(err)
+		}
+		tempFile.ReadFrom(engine.Wrap(originalFile))
+		originalFile.Reset()
+		originalFile = tempFile
+
+	}
+	return originalFile
 
 }
 

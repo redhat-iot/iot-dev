@@ -16,47 +16,18 @@ limitations under the License.
 package cmd
 
 import (
-	"log"
-	//"os"
+	"fmt"
 
 	"github.com/spf13/cobra"
-
-	"github.com/IoTCLI/cmd/utils"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"k8s.io/kubectl/pkg/cmd/delete"
 )
 
-func enmasseDestroy() {
+var (
+	tensorflowServingNamespaceFlag string
+)
 
-	//Make command options for Kafka Setup
-	co := utils.NewCommandOptions()
-
-	//Fill ain the commands that must be applied to
-	//Install Enmasse Core
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/enmasse-infra-namespace.yaml")
-	//
-	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
-
-	co.SwitchContext(enmasseSetupNamespaceFlag)
-
-	//Reload config flags after switching context
-	log.Println("Destroy Enmasse Messaging Service")
-	for _, command := range co.Commands {
-		cmd := delete.NewCmdDelete(co.CurrentFactory, IOStreams)
-		err := cmd.Flags().Set("filename", command)
-		if err != nil {
-			log.Fatal(err)
-		}
-		cmd.Run(cmd, []string{})
-		log.Print(out.String())
-		out.Reset()
-	}
-
-}
-
-// destroyCmd represents the destroy command
-var enmasseDestroyCmd = &cobra.Command{
-	Use:   "destroy",
+// tensorflowServingCmd represents the tensorflowServing command
+var tensorflowServingCmd = &cobra.Command{
+	Use:   "tensorflowServing",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -65,22 +36,20 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("destroy called")
-		enmasseDestroy()
+		fmt.Println("tensorflowServing called")
 	},
 }
 
 func init() {
-	enmasseCmd.AddCommand(enmasseDestroyCmd)
+	rootCmd.AddCommand(tensorflowServingCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// destroyCmd.PersistentFlags().String("foo", "", "A help for foo")
-
+	// tensorflowServingCmd.PersistentFlags().String("foo", "", "A help for foo")
+	tensorflowServingCmd.PersistentFlags().StringVarP(&tensorflowServingNamespaceFlag, "namespace", "n", "default", "Option to specify namespace for Tensorflow Serving Deployment, defaults to 'default'")
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// destroyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
+	// tensorflowServingCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

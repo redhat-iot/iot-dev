@@ -37,7 +37,7 @@ func destroyService(service string) {
 	co := utils.NewCommandOptions()
 
 	//Install Openshift Serveless and  Knative Serving
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/knative/services/"+service+".yaml")
+	co.Commands = append(co.Commands, service)
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
 	co.SwitchContext(knativeServiceDestroyNamespaceFlag)
@@ -45,11 +45,7 @@ func destroyService(service string) {
 	log.Println("Delete Knative service: ", service)
 	for _, command := range co.Commands {
 		cmd := delete.NewCmdDelete(co.CurrentFactory, IOStreams)
-		err := cmd.Flags().Set("filename", command)
-		if err != nil {
-			log.Fatal(err)
-		}
-		cmd.Run(cmd, []string{})
+		cmd.Run(cmd, []string{"ksvc", command})
 		log.Print(out.String())
 		out.Reset()
 		//Allow time for Operator to distribute to all namespaces

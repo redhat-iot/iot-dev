@@ -16,17 +16,14 @@ limitations under the License.
 package cmd
 
 import (
-	//"io/ioutil"
 	"log"
-	//"os"
+	"os"
 	"os/exec"
 
 	"github.com/spf13/cobra"
 
-	//in package import
 	"github.com/IoTCLI/cmd/utils"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	//"k8s.io/kubectl/pkg/cmd/"
 	"k8s.io/kubectl/pkg/cmd/apply"
 )
 
@@ -90,6 +87,7 @@ func enmasseSetup() {
 		log.Print(out.String())
 		out.Reset()
 	}
+	os.RemoveAll(folderName)
 
 }
 

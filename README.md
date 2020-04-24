@@ -2,6 +2,16 @@
 
 The user can choose which tools they want to use in order to either digest, display or process the IoT data. Eventually the user will be allowed to create custom data pipelines to connect the tools. Currently the following tools will be supported 
 
+## Getting Started 
+
+Download the latest Release from the [release page](https://github.com/redhat-iot/iot-dev/releases)
+
+Move the Executable `IoTCLI` into your `$PATH`
+
+Run `IoTCLI` login to authenticate with your openshift cluster 
+
+# Main Components Overview
+
 ## Messaging Core 
 
 In any Edge system that incorporates IoT devices, having a scalable cloud native edge system is very important.  With the `IoTCLI` you can easily deploy these messaging services to your Openshift 4.X cluster
@@ -66,24 +76,27 @@ Persistent storage is implemented using [Ceph Object Storage](https://ceph.io/ce
 #### TensorFlow lite 
 
     TODO
-
-
     
 ## Command Reference 
 
-| Command1 (Tool) | Command2(Module) | Command3(Module command) | Argument (module input)            | Flags                          | Function                                                                                                                                           |
-|-----------------|------------------|--------------------------|------------------------------------|--------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| ceph            | setup            | None                     | None                               | None                           | Setup Ceph Object Storage via the Rook Operator                                                                                                    |
-| enmasse         | destroy          | None                     | None                               | None                           | Remove Enmasse from openshift  cluster                                                                                                             |
-| enmasse         | IoT              | addDevice                | <Messaging Tenant>  <DeviceID>     | None                           | Add a Device with specified ID to the Enmasse device registry for a specified messaging TenantSetup default Credentials                            |
-| enmasse         | IoT              | project                  | None                               | --namespace                    | Make a new enmasse IoT project in the specified namespace, defaults to “myapp”                                                                     |
-| enmasse         | setup            | None                     | None                               | None                           | Download Enmasse Source, store in current directory. Setup Enmasse Setup IoT services                                                              |
-| kafka           | bridge           | None                     | None                               | --namespace                    | Deploy kafka HTTP bridge Deploy nginx ingress to access bridge from outside the cluster (will be transitioned to a route)                          |
-| kafka           | destroy          | None                     | None                               | --namespace                    | Destroy the kafka deployment located at the specified namespace                                                                                    |
-| kafka           | setup            | None                     | None                               | --namespace                    | Setup a kafka cluster viat the strimzi operator at the specified namespace                                                                         |
-| knative         | setup            | None                     | None                               | --status=true/false            | Setup Knative serverless on openshift clusterConfigures both Knative-Eventing and  Knative-ServingSet --status=true to check on Knative deployment |
-| knative         | destroy          | None                     | None                               | None                           | Remove Knative deployment from openshift cluster                                                                                                   |
-| knative         | service          | None                     | <Knative service to be deployed>   | --status=true/false--namespace | Deploy a knative service Set --status=true to check on Knative service deploymentDefault namespace is “knative-eventing”                           |
-| knative         | service          | destroy                  | <Knative service to be destroyed>  | --namespace                    | Remove a specified Knative service from the cluster at specified namespace Default namespace is “knative-eventing”                                 |
-| knative         | source           | None                     | <containersource to be deployed>   | --namespace                    | Deploy a Knative Source at specified namespace Defaults to namespace “knative-eventing”                                                            |
-| knative         | source           | destroy                  | <containersource to be destroyed>  | --namespace                    | Remove a specified knative source from the cluster from specified namespaceDefault namespace is “knative-eventing”                                 |
+| Command1 (Tool)   | Command2(Module) | Command3(Module command) | Argument (module input)            | Flags                          | Function                                                                                                                                           |
+|-------------------|------------------|--------------------------|------------------------------------|--------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| ceph              | destroy          | None                     | None                               | None                           | Return user secrets for c                                                                                                                          |
+| ceph              | secrets          | None                     | None                               | None                           | Return user secrets for ceph deployment                                                                                                            |
+| ceph              | setup            | None                     | None                               | None                           | Setup Ceph Object Storage via the Rook Operator                                                                                                    |
+| enmasse           | destroy          | None                     | None                               | None                           | Remove Enmasse from openshift  cluster                                                                                                             |
+| enmasse           | IoT              | addDevice                | <Messaging Tenant>  <DeviceID>     | None                           | Add a Device with specified ID to the Enmasse device registry for a specified messaging TenantSetup default Credentials                            |
+| enmasse           | IoT              | project                  | None                               | --namespace                    | Make a new enmasse IoT project in the specified namespace, defaults to “myapp”                                                                     |
+| enmasse           | setup            | None                     | None                               | None                           | Download Enmasse Source, store in current directory. Setup Enmasse Setup IoT services                                                              |
+| kafka             | bridge           | None                     | None                               | --namespace                    | Deploy kafka HTTP bridge Deploy nginx ingress to access bridge from outside the cluster (will be transitioned to a route)                          |
+| kafka             | destroy          | None                     | None                               | --namespace                    | Destroy the kafka deployment located at the specified namespace                                                                                    |
+| kafka             | setup            | None                     | None                               | --namespace                    | Setup a kafka cluster viat the strimzi operator at the specified namespace                                                                         |
+| knative           | setup            | None                     | None                               | --status=true/false            | Setup Knative serverless on openshift clusterConfigures both Knative-Eventing and  Knative-ServingSet --status=true to check on Knative deployment |
+| knative           | destroy          | None                     | None                               | None                           | Remove Knative deployment from openshift cluster                                                                                                   |
+| knative           | service          | None                     | <Knative service to be deployed>   | --status=true/false--namespace | Deploy a knative service Set --status=true to check on Knative service deploymentDefault namespace is “knative-eventing”                           |
+| knative           | service          | destroy                  | <Knative service to be destroyed>  | --namespace                    | Remove a specified Knative service from the cluster at specified namespace Default namespace is “knative-eventing”                                 |
+| knative           | source           | None                     | <containersource to be deployed>   | --namespace                    | Deploy a Knative Source at specified namespace Defaults to namespace “knative-eventing”                                                            |
+| knative           | source           | destroy                  | <containersource to be destroyed>  | --namespace                    | Remove a specified knative source from the cluster from specified namespaceDefault namespace is “knative-eventing”                                 |
+| login             | None             | None                     | None                               | None                           | Login to your openshift cluster with the username and password                                                                                     |
+| tensorflowServing | setup            | None                     | None                               | --namespace                    | Deploy a tensorflow serving deployment and service Default namespace is “default”                                                                  |
+| tensorflowServing | destroy          | None                     | None                               | --namesapce                    | Deploy a tensorflow serving deployment and serviceDefault namespace is “default”                                                                   |
