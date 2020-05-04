@@ -27,6 +27,7 @@ import (
 	//"k8s.io/kubectl/pkg/cmd/"
 	"k8s.io/kubectl/pkg/cmd/apply"
 	"k8s.io/kubectl/pkg/cmd/get"
+	"strings"
 	"time"
 )
 
@@ -64,27 +65,38 @@ func knativeServing() {
 	var deployments = false
 	var install = false
 	var ready = false
-	//m = make(map[string]int)
+	var err error
 
-	for !deployments && !install && !ready && !dependencies {
+	for !deployments || !install || !ready || !dependencies {
 
 		cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 		//err := cmd.Flags().Set("output", "jsonpath={.status.conditions}")
-		cmd.Flags().Set("template", "{{range .status.conditions}}{{printf \"%s=%s\" .type .status}}{{end}}")
-
+		cmd.Flags().Set("template", "{{range .status.conditions}}{{printf \"%s \" .status}}{{end}}")
 		cmd.Run(cmd, []string{"knativeserving.operator.knative.dev/knative-serving"})
-		knativeStatus := out.String()
-		//log.Println(knativeStatus)
 
-		dependencies, _ = strconv.ParseBool(knativeStatus[21:26])
-		deployments, _ = strconv.ParseBool(knativeStatus[46:51])
-		install, _ = strconv.ParseBool(knativeStatus[68:72])
-		ready, _ = strconv.ParseBool(knativeStatus[78:82])
-
-		log.Print("knative Serving Install Status:\nDependenciesInstalled=" + knativeStatus[21:26] + "\n" +
-			"DeploymentsAvaliable=" + knativeStatus[46:51] + "\n" + "InstallSucceeded=" + knativeStatus[68:72] +
-			"\n" + "Ready=" + knativeStatus[78:82] + "\n")
+		knativeStatus := strings.Split(out.String(), " ")
 		out.Reset()
+
+		dependencies, err = strconv.ParseBool(knativeStatus[0])
+		if err != nil {
+			dependencies = false
+		}
+		deployments, err = strconv.ParseBool(knativeStatus[1])
+		if err != nil {
+			deployments = false
+		}
+		install, err = strconv.ParseBool(knativeStatus[2])
+		if err != nil {
+			install = false
+		}
+		ready, err = strconv.ParseBool(knativeStatus[3])
+		if err != nil {
+			ready = false
+		}
+
+		log.Print("knative Serving Install Status:\nDependenciesInstalled=" + knativeStatus[0] + "\n" +
+			"DeploymentsAvaliable=" + knativeStatus[1] + "\n" + "InstallSucceeded=" + knativeStatus[2] +
+			"\n" + "Ready=" + knativeStatus[3] + "\n")
 
 		time.Sleep(10 * time.Second)
 
@@ -100,20 +112,16 @@ func knativeEventing() {
 	co := utils.NewCommandOptions()
 
 	//Install Openshift Serveless and  Knative Serving
-	co.Commands = append(co.Commands, "https://github.com/knative/eventing/releases/download/v0.13.0/eventing.yaml")
-	co.Commands = append(co.Commands, "https://github.com/knative/eventing/releases/download/v0.13.0/eventing.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/knative/setup/knative-eventing.yaml")
 
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
 	co.SwitchContext("knative-eventing")
 
 	log.Println("Provision Knative Eventing")
-	for commandNumber, command := range co.Commands {
+	for _, command := range co.Commands {
 
 		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
-		if commandNumber == 0 {
-			cmd.Flags().Set("selector", "knative.dev/crd-install")
-		}
 		err := cmd.Flags().Set("filename", command)
 		if err != nil {
 			log.Fatal(err)
@@ -123,6 +131,34 @@ func knativeEventing() {
 		out.Reset()
 	}
 	time.Sleep(5 * time.Second)
+
+	var install = false
+	var ready = false
+	var err error
+
+	for !install || !ready {
+
+		cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
+		cmd.Flags().Set("template", "{{range .status.conditions}}{{printf \" %s=%s \" .type .status}}{{end}}")
+		cmd.Run(cmd, []string{"knativeeventing.operator.knative.dev/knative-eventing"})
+
+		knativeStatus := strings.Split(out.String(), " ")
+
+		install, err = strconv.ParseBool(knativeStatus[2])
+		if err != nil {
+			install = false
+		}
+		ready, err = strconv.ParseBool(knativeStatus[3])
+		if err != nil {
+			ready = false
+		}
+		log.Println("Knative Eventing Install Status: ")
+		log.Print(out.String())
+		out.Reset()
+		time.Sleep(10 * time.Second)
+
+	}
+
 }
 
 func knativeStatus() {
@@ -138,18 +174,23 @@ func knativeStatus() {
 	co.SwitchContext("knative-serving")
 
 	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
-	cmd.Flags().Set("template", "{{range .status.conditions}}{{printf \"%s=%s\" .type .status}}{{end}}")
+	cmd.Flags().Set("template", "{{range .status.conditions}}{{printf \"%s \" .status}}{{end}}")
 	cmd.Run(cmd, []string{co.Commands[0]})
-	//log.Print(out.String())
-	knativeStatus := out.String()
+
+	knativeStatus := strings.Split(out.String(), " ")
 	out.Reset()
 
-	log.Print("knative Serving Install Status:\nDependenciesInstalled=" + knativeStatus[21:26] + "\n" +
-		"DeploymentsAvaliable=" + knativeStatus[46:51] + "\n" + "InstallSucceeded=" + knativeStatus[68:72] +
-		"\n" + "Ready=" + knativeStatus[78:82] + "\n")
-	out.Reset()
+	log.Print("knative Serving Install Status:\nDependenciesInstalled=" + knativeStatus[0] + "\n" +
+		"DeploymentsAvaliable=" + knativeStatus[1] + "\n" + "InstallSucceeded=" + knativeStatus[2] +
+		"\n" + "Ready=" + knativeStatus[3] + "\n")
 
 	co.SwitchContext("knative-eventing")
+
+	cmd = get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
+	cmd.Flags().Set("template", "{{range .status.conditions}}{{printf \"%s=%s \" .type .status}}{{end}}")
+	cmd.Run(cmd, []string{"knativeeventing.operator.knative.dev/knative-eventing"})
+	log.Print(out.String())
+	out.Reset()
 
 	cmd = get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 	cmd.Run(cmd, []string{co.Commands[1]})
