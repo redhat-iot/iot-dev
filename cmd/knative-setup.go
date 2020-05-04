@@ -98,7 +98,7 @@ func knativeServing() {
 			"DeploymentsAvaliable=" + knativeStatus[1] + "\n" + "InstallSucceeded=" + knativeStatus[2] +
 			"\n" + "Ready=" + knativeStatus[3] + "\n")
 
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Second)
 
 	}
 
@@ -139,12 +139,12 @@ func knativeEventing() {
 	for !install || !ready {
 
 		cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
-		cmd.Flags().Set("template", "{{range .status.conditions}}{{printf \" %s=%s \" .type .status}}{{end}}")
+		cmd.Flags().Set("template", "{{range .status.conditions}}{{printf \"%s= %s \" .type .status}}{{end}}")
 		cmd.Run(cmd, []string{"knativeeventing.operator.knative.dev/knative-eventing"})
 
 		knativeStatus := strings.Split(out.String(), " ")
 
-		install, err = strconv.ParseBool(knativeStatus[2])
+		install, err = strconv.ParseBool(knativeStatus[1])
 		if err != nil {
 			install = false
 		}
@@ -155,7 +155,7 @@ func knativeEventing() {
 		log.Println("Knative Eventing Install Status: ")
 		log.Print(out.String())
 		out.Reset()
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Second)
 
 	}
 
