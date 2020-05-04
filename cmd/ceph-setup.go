@@ -57,7 +57,7 @@ func cephSetup() {
 				cmd.Flags().Set("output", "yaml")
 				cmd.Run(cmd, []string{command})
 				podStatus.CountPods(out.Bytes())
-				log.Print("waiting...")
+				log.Print("Waiting...")
 				out.Reset()
 				time.Sleep(5 * time.Second)
 			}
@@ -72,10 +72,11 @@ func cephSetup() {
 				cmd.Flags().Set("output", "yaml")
 				cmd.Run(cmd, []string{command})
 				podStatus.CountPods(out.Bytes())
-				log.Print("waiting...")
+				log.Print("Waiting...")
 				out.Reset()
 				time.Sleep(5 * time.Second)
 			}
+			time.Sleep(5 * time.Second)
 		} else {
 			cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
 			//Kubectl signals missing field, set validate to false to ignore this
