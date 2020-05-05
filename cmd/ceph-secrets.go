@@ -23,7 +23,7 @@ import (
 	"log"
 )
 
-func getCredentials() {
+func getCredentials(user string) {
 	co := utils.NewCommandOptions()
 
 	co.Commands = append(co.Commands, "secrets")
@@ -36,7 +36,7 @@ func getCredentials() {
 	log.Print("Get S3 secrets, save for possible later use:")
 	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 	cmd.Flags().Set("output", "json")
-	cmd.Run(cmd, []string{co.Commands[0], "rook-ceph-object-user-my-store-odh-user"})
+	cmd.Run(cmd, []string{co.Commands[0], "rook-ceph-object-user-my-store-" + user})
 	log.Print(out.String())
 	out.Reset()
 }
@@ -53,7 +53,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Println("Ceph Secrets called")
-		getCredentials()
+		getCredentials(args[0])
 	},
 }
 

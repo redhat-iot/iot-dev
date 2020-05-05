@@ -38,7 +38,6 @@ func cephSetup() {
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/toolbox.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/object.yaml")
 	co.Commands = append(co.Commands, "pods")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/object-user.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/route.yaml")
 
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
@@ -46,7 +45,7 @@ func cephSetup() {
 	//Switch Context and Reload Config Flags
 	co.SwitchContext("rook-ceph-system")
 
-	log.Println("Provision Knative Source")
+	log.Println("Setup Ceph Object Storage with Rook Operator")
 	for commandNumber, command := range co.Commands {
 		//After the system pods are provisioned wait for them to become ready before moving on
 		if commandNumber == 2 {

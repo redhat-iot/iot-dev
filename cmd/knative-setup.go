@@ -104,8 +104,6 @@ func knativeServing() {
 
 }
 
-//kubectl delete --selector knative.dev/crd-install=true --filename https://github.com/knative/eventing/releases/download/v0.13.0/eventing.yaml
-
 func knativeEventing() {
 
 	//Make command options for Kafka Setup
