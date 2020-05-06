@@ -79,6 +79,8 @@ func kafkaBridgeRoute() {
 	log.Println("Provision Kafka Http Bridge using route")
 	for _, command := range co.Commands {
 		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
+		//Kubectl signals missing field, set validate to false to ignore this
+		cmd.Flags().Set("validate", "false")
 		err := cmd.Flags().Set("filename", command)
 		if err != nil {
 			log.Fatal(err)

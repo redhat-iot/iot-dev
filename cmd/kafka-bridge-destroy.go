@@ -28,6 +28,37 @@ var (
 	kafkaBridgeDestroyNamespaceFlag string
 )
 
+func kafkaBridgeRouteDestroy() {
+
+	//Make command options for Kafka Setup
+	co := utils.NewCommandOptions()
+
+	_ = utils.DownloadAndUncompress("oc.gz", "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz")
+	log.Println("oc Source folder: ", "oc")
+
+	//Fill in the commands that must be applied to
+	co.Commands = append(co.Commands, "/home/adkadam/work/golang/iot-dev/yamls/kafka/bridge/route.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/bridge/kafka-bridge.yaml")
+
+	//
+	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
+
+	co.SwitchContext(kafkaBridgeDestroyNamespaceFlag)
+
+	log.Println("Destroy Kafka Bridge with route from cluster")
+	for _, command := range co.Commands {
+		cmd := delete.NewCmdDelete(co.CurrentFactory, IOStreams)
+		err := cmd.Flags().Set("filename", command)
+		if err != nil {
+			log.Fatal(err)
+		}
+		cmd.Run(cmd, []string{})
+		log.Print(out.String())
+		out.Reset()
+	}
+	//Remove tempfile when done
+}
+
 func kafkaBridgeDestroy() {
 
 	//Make command options for Kafka Setup
@@ -47,7 +78,7 @@ func kafkaBridgeDestroy() {
 
 	co.SwitchContext(kafkaBridgeDestroyNamespaceFlag)
 
-	log.Println("Destroy Kafka Bridge from cluster")
+	log.Println("Destroy Kafka Bridge with ingress from cluster")
 	for _, command := range co.Commands {
 		cmd := delete.NewCmdDelete(co.CurrentFactory, IOStreams)
 		err := cmd.Flags().Set("filename", command)
@@ -62,7 +93,7 @@ func kafkaBridgeDestroy() {
 }
 
 // destroyCmd represents the destroy command
-var kafkaBridgedestroyCmd = &cobra.Command{
+var kafkaBridgeDestroyCmd = &cobra.Command{
 	Use:   "destroy",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
@@ -72,13 +103,19 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("Kafka bridge destroy called")
-		kafkaBridgeDestroy()
+		fstatus, _ := cmd.Flags().GetBool("float")
+		if fstatus { // if status is true, call addFloat
+			log.Println("Kafka Bridge Destroy called")
+			kafkaBridgeDestroy()
+		} else {
+			log.Println("Kafka Bridge Destroy called")
+			kafkaBridgeRouteDestroy()
+		}
 	},
 }
 
 func init() {
-	kafkaBridgeCmd.AddCommand(kafkaBridgedestroyCmd)
+	kafkaBridgeCmd.AddCommand(kafkaBridgeDestroyCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -89,5 +126,8 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// destroyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	kafkaBridgedestroyCmd.Flags().StringVarP(&kafkaBridgeDestroyNamespaceFlag, "namespace", "n", "kafka", "Option to specify namespace for kafka deletion, defaults to 'kafka'")
+
+	kafkaBridgeDestroyCmd.Flags().StringVarP(&kafkaBridgeDestroyNamespaceFlag, "namespace", "n", "kafka", "Option to specify namespace for kafka deletion, defaults to 'kafka'")
+
+	kafkaBridgeDestroyCmd.Flags().BoolP("route", "r", false, "Destroy kafka bridge with route, defaults to destroying kafka bridge with ingress")
 }
