@@ -16,11 +16,12 @@ limitations under the License.
 package cmd
 
 import (
+	"log"
+
 	"github.com/IoTCLI/cmd/utils"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/delete"
-	"log"
 	//"time"
 )
 
@@ -63,7 +64,7 @@ func cephDestroy() {
 // destroyCmd represents the destroy command
 var cephDestroyCmd = &cobra.Command{
 	Use:   "destroy",
-	Short: "A brief description of your command",
+	Short: "Destroy the Ceph cluster",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

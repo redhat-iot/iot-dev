@@ -24,7 +24,7 @@ import (
 // IoTCmd represents the IoT command
 var enmasseIoTCmd = &cobra.Command{
 	Use:   "IoT",
-	Short: "A brief description of your command",
+	Short: "Setup Enmasse IoT project",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

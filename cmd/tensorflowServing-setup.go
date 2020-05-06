@@ -16,11 +16,12 @@ limitations under the License.
 package cmd
 
 import (
+	"log"
+
 	"github.com/IoTCLI/cmd/utils"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
-	"log"
 )
 
 func tensorflowServingSetup() {
@@ -51,7 +52,7 @@ func tensorflowServingSetup() {
 // tensorflowServingSetupCmd represents the tensorflowServingSetup command
 var tensorflowServingSetupCmd = &cobra.Command{
 	Use:   "setup",
-	Short: "A brief description of your command",
+	Short: "Setup tensorflow service for analtyics",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

@@ -95,7 +95,7 @@ func kafkaBridgeRoute() {
 // bridgeCmd represents the bridge command
 var kafkaBridgeCmd = &cobra.Command{
 	Use:   "bridge",
-	Short: "A brief description of your command",
+	Short: "Setup Kafka bridge to send data over to the Kafka cluster",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -104,13 +104,13 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		fstatus, _ := cmd.Flags().GetBool("float")
+		fstatus, _ := cmd.Flags().GetBool("route")
 		if fstatus { // if status is true, call addFloat
-			log.Println("Kafka Http Bridge called using Ingress")
-			kafkaBridge()
-		} else {
 			log.Println("Kafka Http Bridge called using Route")
 			kafkaBridgeRoute()
+		} else {
+			log.Println("Kafka Http Bridge called using Ingress")
+			kafkaBridge()
 		}
 
 	},

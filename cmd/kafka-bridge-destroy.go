@@ -95,7 +95,7 @@ func kafkaBridgeDestroy() {
 // destroyCmd represents the destroy command
 var kafkaBridgeDestroyCmd = &cobra.Command{
 	Use:   "destroy",
-	Short: "A brief description of your command",
+	Short: "Destory the Kafka Bridge",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -103,13 +103,13 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fstatus, _ := cmd.Flags().GetBool("float")
-		if fstatus { // if status is true, call addFloat
-			log.Println("Kafka Bridge Destroy called")
-			kafkaBridgeDestroy()
-		} else {
+		fstatus, _ := cmd.Flags().GetBool("route")
+		if fstatus { // if status is true, call Kafka bridge destroy with route
 			log.Println("Kafka Bridge Destroy called")
 			kafkaBridgeRouteDestroy()
+		} else {
+			log.Println("Kafka Bridge Destroy called")
+			kafkaBridgeDestroy()
 		}
 	},
 }

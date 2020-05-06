@@ -28,7 +28,7 @@ var (
 // tensorflowServingCmd represents the tensorflowServing command
 var tensorflowServingCmd = &cobra.Command{
 	Use:   "tensorflowServing",
-	Short: "A brief description of your command",
+	Short: "Setup a tensorflow service for analytics",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

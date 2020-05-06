@@ -57,7 +57,7 @@ func gstreamerDestroy() {
 // destroyCmd represents the destroy command
 var gstreamerDestroyCmd = &cobra.Command{
 	Use:   "destroy",
-	Short: "A brief description of your command",
+	Short: "Destroy gstreamer deployment",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

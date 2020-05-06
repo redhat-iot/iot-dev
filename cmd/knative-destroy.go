@@ -24,6 +24,7 @@ import (
 	//in package import
 	"github.com/IoTCLI/cmd/utils"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+
 	//"k8s.io/kubectl/pkg/cmd/"
 	"k8s.io/kubectl/pkg/cmd/delete"
 )
@@ -76,7 +77,7 @@ func destroyKnative() {
 // destroyCmd represents the destroy command
 var knativeDestroyCmd = &cobra.Command{
 	Use:   "destroy",
-	Short: "A brief description of your command",
+	Short: "Destroy Knative serving and eventing",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -84,7 +85,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("destroy called")
+		log.Println("knative destroy called")
 		destroyKnative()
 	},
 }

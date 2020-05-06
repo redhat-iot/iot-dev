@@ -25,6 +25,7 @@ import (
 	//in package import
 	"github.com/IoTCLI/cmd/utils"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+
 	//"k8s.io/kubectl/pkg/cmd/"
 	"k8s.io/kubectl/pkg/cmd/delete"
 )
@@ -67,7 +68,7 @@ func desContainerSource(source string) {
 // destroyCmd represents the destroy command
 var knativeSourceDestroyCmd = &cobra.Command{
 	Use:   "destroy",
-	Short: "A brief description of your command",
+	Short: "Destroy Knative Source eployment",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

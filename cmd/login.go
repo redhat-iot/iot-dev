@@ -17,12 +17,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/IoTCLI/cmd/utils"
-	"github.com/spf13/cobra"
-	"golang.org/x/crypto/ssh/terminal"
 	"log"
 	"os"
 	"os/exec"
+
+	"github.com/IoTCLI/cmd/utils"
+	"github.com/spf13/cobra"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 func login() {
@@ -56,7 +57,7 @@ func login() {
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "A brief description of your command",
+	Short: "Login to the Openshift Cluster",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

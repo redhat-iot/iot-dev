@@ -16,11 +16,12 @@ limitations under the License.
 package cmd
 
 import (
+	"log"
+
 	"github.com/IoTCLI/cmd/utils"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/delete"
-	"log"
 )
 
 var (
@@ -39,8 +40,10 @@ func kafkaDestroy() {
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/setup/kafka.yaml")
 	co.Commands = append(co.Commands, "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.17.0/strimzi-cluster-operator-0.17.0.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/setup/kafka-namespace.yaml")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/mandatory.yaml")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/provider/cloud-generic.yaml")
+
+	//Destroying kafka
+	// co.Commands = append(co.Commands, "https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/mandatory.yaml")
+	// co.Commands = append(co.Commands, "https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/provider/cloud-generic.yaml")
 	//
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
@@ -63,7 +66,7 @@ func kafkaDestroy() {
 // destroyCmd represents the destroy command
 var kafkaDestroyCmd = &cobra.Command{
 	Use:   "destroy",
-	Short: "A brief description of your command",
+	Short: "Destroy the Kafka cluster along with Strimzi operator",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

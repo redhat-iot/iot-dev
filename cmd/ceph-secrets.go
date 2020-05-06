@@ -16,11 +16,12 @@ limitations under the License.
 package cmd
 
 import (
+	"log"
+
 	"github.com/IoTCLI/cmd/utils"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/get"
-	"log"
 )
 
 func getCredentials() {
@@ -44,7 +45,7 @@ func getCredentials() {
 // secretsCmd represents the secrets command
 var cephSecretsCmd = &cobra.Command{
 	Use:   "secrets",
-	Short: "A brief description of your command",
+	Short: "Get S3 secrets from ceph object storage",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
