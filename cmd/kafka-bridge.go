@@ -16,11 +16,12 @@ limitations under the License.
 package cmd
 
 import (
+	"log"
+
 	"github.com/IoTCLI/cmd/utils"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
-	"log"
 )
 
 var (
@@ -37,7 +38,7 @@ func kafkaBridge() {
 	//Get Nginix controller and apply to cluster
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/mandatory.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/provider/cloud-generic.yaml")
-	//Seutp the K8s ingress resource
+	//Setup the K8s ingress resource
 
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/bridge/ingress.yaml")
 
@@ -48,6 +49,34 @@ func kafkaBridge() {
 	//Reload config flags after switching context
 
 	log.Println("Provision Kafka Http Bridge")
+	for _, command := range co.Commands {
+		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
+		err := cmd.Flags().Set("filename", command)
+		if err != nil {
+			log.Fatal(err)
+		}
+		cmd.Run(cmd, []string{})
+		log.Print(out.String())
+		out.Reset()
+	}
+	log.Println("To check status of Kafka HTTP bridge run 'curl -v GET http://my-bridge.io/healthy'")
+}
+
+func kafkaBridgeRoute() {
+
+	co := utils.NewCommandOptions()
+
+	//Setup kafka bridge
+	co.Commands = append(co.Commands, "/home/adkadam/work/golang/iot-dev/yamls/kafka/bridge/route.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/bridge/kafka-bridge.yaml")
+
+	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
+
+	co.SwitchContext(kafkaBridgeNamespaceFlag)
+
+	//Reload config flags after switching context
+
+	log.Println("Provision Kafka Http Bridge using route")
 	for _, command := range co.Commands {
 		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
 		err := cmd.Flags().Set("filename", command)
@@ -72,8 +101,16 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("Kafka Http Bridge called")
-		kafkaBridge()
+
+		fstatus, _ := cmd.Flags().GetBool("float")
+		if fstatus { // if status is true, call addFloat
+			log.Println("Kafka Http Bridge called using Ingress")
+			kafkaBridge()
+		} else {
+			log.Println("Kafka Http Bridge called using Route")
+			kafkaBridgeRoute()
+		}
+
 	},
 }
 
@@ -90,4 +127,6 @@ func init() {
 	// is called directly, e.g.:
 	// bridgeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	kafkaBridgeCmd.Flags().StringVarP(&kafkaBridgeNamespaceFlag, "namespace", "n", "kafka", "Option to specify namespace for kafka deletion, defaults to 'kafka'")
+
+	kafkaBridgeCmd.Flags().BoolP("route", "r", false, "Setup kafka bridge using route, defaults to using ingress")
 }

@@ -18,6 +18,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os/exec"
 
 	"github.com/IoTCLI/cmd/utils"
 	"github.com/spf13/cobra"
@@ -37,8 +38,26 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(" gstreamer setup called")
-		gstreamerSetup()
+		fstatus, _ := cmd.Flags().GetBool("float")
+		if fstatus { // if status is true, call addFloat
+			gstreamerSetup()
+		} else {
+			log.Println("a")
+			gstreamerLocalSetup()
+		}
 	},
+}
+
+func gstreamerLocalSetup() {
+
+	cmd := exec.Command("/home/adkadam/work/golang/iot-dev/cmd/dummy.sh")
+	out, error := cmd.Output()
+	if error != nil {
+		println(error.Error())
+		return
+	} else {
+		log.Println(string(out))
+	}
 }
 
 func gstreamerSetup() {
@@ -80,4 +99,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// setupCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	gstreamerSetupCmd.Flags().BoolP("local", "l", false, "Setup gstreamer locally")
 }
