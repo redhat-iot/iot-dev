@@ -73,7 +73,7 @@ Persistent storage is implemented using [Ceph Object Storage](https://ceph.io/ce
 ### On Edge 
 
 #### Gstreamer
-    Gstreamer AI plugin to run analytics on low resource devices @Aditya
+Gstreamer is an open source multimedia framework for managing media files and real time streaming using camera. This project leverages gstreamer capabilities with CNN model based enchanced analytics from OpenVino toolkit by Intel. This can be used to perform HLS video streaming with various use cases such as object detection, classification, recognition and tracking. 
 
 #### TensorFlow lite 
 
