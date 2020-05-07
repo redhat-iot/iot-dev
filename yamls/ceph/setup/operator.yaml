@@ -371,7 +371,7 @@ subjects:
   namespace: rook-ceph-system
 ---
 # The deployment for the rook operator
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: rook-ceph-operator
