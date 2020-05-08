@@ -16,14 +16,16 @@ limitations under the License.
 package cmd
 
 import (
-	"log"
-	//"os"
-
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/IoTCLI/cmd/utils"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/delete"
+)
+
+var (
+	enmasseDestroyNamespaceFlag string
 )
 
 func enmasseDestroy() {
@@ -37,7 +39,7 @@ func enmasseDestroy() {
 	//
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
-	co.SwitchContext(enmasseSetupNamespaceFlag)
+	co.SwitchContext(enmasseDestroyNamespaceFlag)
 
 	//Reload config flags after switching context
 	log.Println("Destroy Enmasse Messaging Service")
@@ -82,5 +84,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// destroyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
+	enmasseDestroyCmd.Flags().StringVarP(&enmasseDestroyNamespaceFlag, "namespace", "n", "enmasse-infra", "Option to specify namespace for enmasse deployment, defaults to 'enmasse-infra'")
 }

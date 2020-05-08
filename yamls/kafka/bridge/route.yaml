@@ -3,7 +3,6 @@ kind: Route
 metadata:
   name: my-bridge-route
 spec:
-  host: my-bridge.io
   to:
     kind: Service
     name: my-bridge-bridge-service
