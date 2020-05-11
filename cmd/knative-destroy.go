@@ -16,8 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"log"
-	//"strconv"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 
@@ -43,7 +42,7 @@ func destroyKnative() {
 
 	co.SwitchContext("knative-eventing")
 
-	log.Println("Remove Openshift Serverless Operator and Knative Serving")
+	log.Info("Remove Openshift Serverless Operator and Knative Serving")
 	for commandNumber, command := range co.Commands {
 		if commandNumber == 1 {
 			co.SwitchContext("knative-serving")
@@ -51,7 +50,7 @@ func destroyKnative() {
 		cmd := delete.NewCmdDelete(co.CurrentFactory, IOStreams)
 		cmd.Flags().Set("filename", command)
 		cmd.Run(cmd, []string{})
-		log.Print(out.String())
+		log.Info(out.String())
 		out.Reset()
 		//Allow time for Operator to distribute to all namespaces
 	}
@@ -85,7 +84,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("knative destroy called")
+		log.Info("Knative destroy called")
 		destroyKnative()
 	},
 }
