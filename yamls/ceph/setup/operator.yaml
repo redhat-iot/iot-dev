@@ -371,7 +371,7 @@ subjects:
   namespace: rook-ceph-system
 ---
 # The deployment for the rook operator
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: rook-ceph-operator
@@ -380,11 +380,16 @@ metadata:
     operator: rook
     storage-backend: ceph
 spec:
+  selector:
+    matchLabels:
+      operator: rook
+      storage-backend: ceph
   replicas: 1
   template:
     metadata:
       labels:
-        app: rook-ceph-operator
+        operator: rook
+        storage-backend: ceph
     spec:
       serviceAccountName: rook-ceph-system
       containers:

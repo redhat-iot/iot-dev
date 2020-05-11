@@ -49,13 +49,22 @@ to quickly create a Cobra application.`,
 
 func gstreamerLocalSetup() {
 
-	cmd := exec.Command("/home/adkadam/work/golang/iot-dev/cmd/dummy.sh")
+	cmd := exec.Command("/home/adkadam/work/golang/iot-dev/cmd/startup.sh")
 	out, error := cmd.Output()
 	if error != nil {
 		println(error.Error())
 		return
 	} else {
 		log.Println(string(out))
+	}
+
+	cmd2 := exec.Command("docker exec <container-name> python3 /root/gst-video-analytics/samples/python/playlist_sender.py")
+	out2, error2 := cmd2.Output()
+	if error2 != nil {
+		println(error2.Error())
+		return
+	} else {
+		log.Println(string(out2))
 	}
 }
 

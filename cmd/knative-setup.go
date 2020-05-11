@@ -16,7 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -47,7 +47,7 @@ func knativeServing() {
 
 	co.SwitchContext("knative-serving")
 
-	log.Println("Provision Openshift Serverless Operator and Knative Serving")
+	log.Info("Provision Openshift Serverless Operator and Knative Serving")
 	for commandNumber, command := range co.Commands {
 		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
 		err := cmd.Flags().Set("filename", command)
@@ -55,10 +55,12 @@ func knativeServing() {
 			log.Fatal(err)
 		}
 		cmd.Run(cmd, []string{})
-		log.Print(out.String())
+		log.Info(out.String())
 		out.Reset()
+
 		//Allow time for Operator to distribute to all namespaces
 		if commandNumber == 1 {
+			log.Info("Pausing to let Openshift Serverless operator distribute to all namespaces")
 			time.Sleep(10.0 * time.Second)
 		}
 	}
@@ -79,6 +81,13 @@ func knativeServing() {
 		knativeStatus := strings.Split(out.String(), " ")
 		out.Reset()
 
+		log.Debug("The current response from Knative: ", knativeStatus)
+		log.Debug("Length of response: ", len(knativeStatus))
+
+		if len(knativeStatus) != 5 {
+			log.Info("Still Starting Knative Resources")
+			continue
+		}
 		dependencies, err = strconv.ParseBool(knativeStatus[0])
 		if err != nil {
 			dependencies = false
@@ -96,7 +105,7 @@ func knativeServing() {
 			ready = false
 		}
 
-		log.Print("knative Serving Install Status:\nDependenciesInstalled=" + knativeStatus[0] + "\n" +
+		log.Info("knative Serving Install Status:\nDependenciesInstalled=" + knativeStatus[0] + "\n" +
 			"DeploymentsAvaliable=" + knativeStatus[1] + "\n" + "InstallSucceeded=" + knativeStatus[2] +
 			"\n" + "Ready=" + knativeStatus[3] + "\n")
 
@@ -105,8 +114,6 @@ func knativeServing() {
 	}
 
 }
-
-//kubectl delete --selector knative.dev/crd-install=true --filename https://github.com/knative/eventing/releases/download/v0.13.0/eventing.yaml
 
 func knativeEventing() {
 
@@ -120,7 +127,7 @@ func knativeEventing() {
 
 	co.SwitchContext("knative-eventing")
 
-	log.Println("Provision Knative Eventing")
+	log.Info("Provision Knative Eventing")
 	for _, command := range co.Commands {
 
 		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
@@ -129,7 +136,7 @@ func knativeEventing() {
 			log.Fatal(err)
 		}
 		cmd.Run(cmd, []string{})
-		log.Print(out.String())
+		log.Info(out.String())
 		out.Reset()
 	}
 	time.Sleep(5 * time.Second)
@@ -154,8 +161,8 @@ func knativeEventing() {
 		if err != nil {
 			ready = false
 		}
-		log.Println("Knative Eventing Install Status: ")
-		log.Print(out.String())
+		log.Info("Knative Eventing Install Status: ")
+		log.Info(out.String())
 		out.Reset()
 		time.Sleep(5 * time.Second)
 
@@ -182,7 +189,7 @@ func knativeStatus() {
 	knativeStatus := strings.Split(out.String(), " ")
 	out.Reset()
 
-	log.Print("knative Serving Install Status:\nDependenciesInstalled=" + knativeStatus[0] + "\n" +
+	log.Info("knative Serving Install Status:\nDependenciesInstalled=" + knativeStatus[0] + "\n" +
 		"DeploymentsAvaliable=" + knativeStatus[1] + "\n" + "InstallSucceeded=" + knativeStatus[2] +
 		"\n" + "Ready=" + knativeStatus[3] + "\n")
 
@@ -191,12 +198,12 @@ func knativeStatus() {
 	cmd = get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 	cmd.Flags().Set("template", "{{range .status.conditions}}{{printf \"%s=%s \" .type .status}}{{end}}")
 	cmd.Run(cmd, []string{"knativeeventing.operator.knative.dev/knative-eventing"})
-	log.Print(out.String())
+	log.Info(out.String())
 	out.Reset()
 
 	cmd = get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 	cmd.Run(cmd, []string{co.Commands[1]})
-	log.Print(out.String())
+	log.Info(out.String())
 	out.Reset()
 
 }
@@ -212,15 +219,15 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if status {
-			log.Println("Checking on knative Eventing and Serving download status")
+		if status == true {
+			log.Info("Checking on knative Eventing and Serving download status")
 			knativeStatus()
 		} else {
-			log.Println("Installing Knative Serving")
+			log.Info("Installing Knative Serving")
 			knativeServing()
-			log.Println("Installing Knative Eventing")
+			log.Info("Installing Knative Eventing")
 			knativeEventing()
-			log.Println("Checking on Knative Eventing and Serving download status")
+			log.Info("Checking on Knative Eventing and Serving download status")
 			knativeStatus()
 		}
 
