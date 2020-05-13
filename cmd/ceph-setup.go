@@ -31,14 +31,25 @@ func cephSetup() {
 	//Make command options for Knative Setup
 	co := utils.NewCommandOptions()
 
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "service-")
+	if err != nil {
+		log.Fatal("Cannot create temporary file", err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	//Get Default Storage Class
+
+	sedCommands := []string{` /- name: S3_ID/,/- name: S3_SECRET_KEY/s/value: .*/value: ` + string(decodedcephAccessKey) + `/`, ` /- name: CEPH_ENDPOINT/,/- name: S3_ID/s/value: .*/value: http:\/\/` + cephEndpoint + `/`,
+		` /- name: S3_SECRET_KEY/,/- name: TF_URL/s/value: .*/value: ` + string(decodedcephSecretKey) + `/`, ` /- name: TF_URL/,/value:/s/value: .*/value: http:\/\/` + tensorflowIP + `:8501\/v1\/models\/ssdlite_mobilenet_v2_coco_2018_05_09:predict/`}
+
+	myOutput := utils.RemoteSed(sedCommands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/knative/services/video-analytics.yaml")
+
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/common.yaml")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/scc.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/operator-openshift.yaml")
-	//co.Commands = append(co.Commands, "pods")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/cluster.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/cluster-on-pvc.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/toolbox.yaml")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/object-openshift.yaml")
 	co.Commands = append(co.Commands, "pods")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/object-openshift.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/route.yaml")
 
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
@@ -49,26 +60,11 @@ func cephSetup() {
 	log.Println("Setup Ceph Object Storage with Rook Operator")
 	for commandNumber, command := range co.Commands {
 
-		/*//After the system pods are provisioned wait for them to become ready before moving on
-		if commandNumber == 3 {
-			log.Info("Waiting for Pods to be ready in rook-ceph-system namespace:")
-			podStatus := utils.NewpodStatus()
-			for podStatus.Running != 4 {
-				cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
-				cmd.Flags().Set("output", "yaml")
-				cmd.Run(cmd, []string{command})
-				podStatus.CountPods(out.Bytes())
-				log.Debug(podStatus)
-				log.Info("Waiting...")
-				out.Reset()
-				time.Sleep(5 * time.Second)
-			}
-		*/
-		if commandNumber == 6 {
+		if commandNumber == 4 {
 			//After the pods in rook-ceph are provisioned wait for them to become ready before moving on
 			log.Print("Waiting for pods to be ready in rook-ceph")
 			podStatus := utils.NewpodStatus()
-			for podStatus.Running != 22 {
+			for podStatus.Running != 22 && podStatus.Succeeded != 3 {
 				cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 				cmd.Flags().Set("output", "yaml")
 				cmd.Run(cmd, []string{command})

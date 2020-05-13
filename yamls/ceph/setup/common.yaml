@@ -1231,9 +1231,7 @@ subjects:
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
-  # Note: Kubernetes matches PSPs to deployments alphabetically. In some environments, this PSP may
-  # need to be renamed with a value that will match before others.
-  name: 00-rook-privileged
+  name: rook-privileged
   annotations:
     seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'runtime/default'
     seccomp.security.alpha.kubernetes.io/defaultProfileName:  'runtime/default'
@@ -1312,7 +1310,7 @@ rules:
     resources:
       - podsecuritypolicies
     resourceNames:
-      - 00-rook-privileged
+      - rook-privileged
     verbs:
       - use
 ---
