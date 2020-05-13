@@ -17,10 +17,10 @@ package cmd
 
 import (
 	"github.com/IoTCLI/cmd/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/get"
-	"log"
 )
 
 func getCredentials(user string) {
@@ -33,11 +33,11 @@ func getCredentials(user string) {
 	//Switch Context and Reload Config Flags
 	co.SwitchContext("rook-ceph")
 
-	log.Print("Get S3 secrets, save for possible later use:")
+	log.Info("Get S3 secrets, save for possible later use:")
 	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 	cmd.Flags().Set("output", "json")
 	cmd.Run(cmd, []string{co.Commands[0], "rook-ceph-object-user-my-store-" + user})
-	log.Print(out.String())
+	log.Info(out.String())
 	out.Reset()
 }
 
@@ -52,7 +52,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("Ceph Secrets called")
+		log.Info("Ceph Secrets called")
 		getCredentials(args[0])
 	},
 }

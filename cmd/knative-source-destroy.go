@@ -16,7 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 	//"strconv"
 	//"strings"
 

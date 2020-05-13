@@ -17,14 +17,10 @@ limitations under the License.
 package cmd
 
 import (
-	"log"
-
-	"github.com/spf13/cobra"
-
-	//in package import
 	"github.com/IoTCLI/cmd/utils"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	//"k8s.io/kubectl/pkg/cmd/"
 	"k8s.io/kubectl/pkg/cmd/delete"
 )
 

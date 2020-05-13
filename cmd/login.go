@@ -18,9 +18,9 @@ package cmd
 import (
 	"fmt"
 	"github.com/IoTCLI/cmd/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
-	"log"
 	"os"
 	"os/exec"
 )

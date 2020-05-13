@@ -17,10 +17,10 @@ package cmd
 
 import (
 	"github.com/IoTCLI/cmd/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
-	"log"
 )
 
 func tensorflowServingSetup() {

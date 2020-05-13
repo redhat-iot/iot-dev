@@ -17,15 +17,44 @@ package cmd
 
 import (
 	"github.com/IoTCLI/cmd/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
-	"log"
 )
 
 var (
 	kafkaBridgeNamespaceFlag string
 )
+
+func kafkaBridgeRoute() {
+	co := utils.NewCommandOptions()
+
+	//Setup kafka bridge
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/bridge/route.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/bridge/kafka-bridge.yaml")
+
+	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
+
+	co.SwitchContext(kafkaBridgeNamespaceFlag)
+
+	//Reload config flags after switching context
+
+	log.Println("Provision Kafka Http Bridge using route")
+	for _, command := range co.Commands {
+		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
+		//Kubectl signals missing field, set validate to false to ignore this
+		cmd.Flags().Set("validate", "false")
+		err := cmd.Flags().Set("filename", command)
+		if err != nil {
+			log.Fatal(err)
+		}
+		cmd.Run(cmd, []string{})
+		log.Print(out.String())
+		out.Reset()
+	}
+	log.Println("To check status of Kafka HTTP bridge run 'curl -v GET http://my-bridge.io/healthy'")
+}
 
 func kafkaBridge() {
 
@@ -73,7 +102,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Println("Kafka Http Bridge called")
-		kafkaBridge()
+		kafkaBridgeRoute()
 	},
 }
 

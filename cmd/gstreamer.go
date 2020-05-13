@@ -17,8 +17,6 @@ package cmd
 
 import (
 	"fmt"
-	//"k8s.io/cli-runtime/pkg/genericclioptions"
-	//"k8s.io/kubectl/pkg/cmd/apply"
 	"github.com/spf13/cobra"
 )
 
