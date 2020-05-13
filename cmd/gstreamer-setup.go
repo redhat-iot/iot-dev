@@ -58,14 +58,27 @@ func gstreamerLocalSetup() {
 		log.Println(string(out))
 	}
 
-	cmd2 := exec.Command("docker exec <container-name> python3 /root/gst-video-analytics/samples/python/playlist_sender.py")
-	out2, error2 := cmd2.Output()
-	if error2 != nil {
-		println(error2.Error())
-		return
-	} else {
-		log.Println(string(out2))
+	for {
+		fmt.Print("Press 'S' to stop the Gstreamer container: ")
+		var key string
+		fmt.Scanln(&key)
+
+		if key == "s" {
+			cmd2 := exec.Command("/bin/sh", "-c", " docker kill gstreamer_launch_2")
+			out2, error2 := cmd2.Output()
+			if error2 != nil {
+				println(error2.Error())
+				return
+			} else {
+				log.Println(string(out2))
+			}
+			fmt.Print("Container stopped: ")
+
+			break
+
+		}
 	}
+
 }
 
 func gstreamerSetup() {
