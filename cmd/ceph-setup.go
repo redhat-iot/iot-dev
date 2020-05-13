@@ -20,10 +20,15 @@ import (
 	"time"
 
 	"github.com/IoTCLI/cmd/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
 	"k8s.io/kubectl/pkg/cmd/get"
+<<<<<<< HEAD
+=======
+	"time"
+>>>>>>> 9809cb2abeca22b5ed2c28099b35ee268a52029c
 )
 
 //Made from Instructions @https://opendatahub.io/docs/administration/advanced-installation/object-storage.html for installing
@@ -32,47 +37,33 @@ func cephSetup() {
 	//Make command options for Knative Setup
 	co := utils.NewCommandOptions()
 
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/scc.yaml")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/operator.yaml")
-	co.Commands = append(co.Commands, "pods")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/cluster.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/common.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/operator-openshift.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/cluster-on-pvc.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/toolbox.yaml")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/object.yaml")
 	co.Commands = append(co.Commands, "pods")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/object-openshift.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/route.yaml")
 
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
 	//Switch Context and Reload Config Flags
-	co.SwitchContext("rook-ceph-system")
+	co.SwitchContext("rook-ceph")
 
 	log.Println("Setup Ceph Object Storage with Rook Operator")
 	for commandNumber, command := range co.Commands {
-		//After the system pods are provisioned wait for them to become ready before moving on
-		if commandNumber == 2 {
-			log.Print("Waiting for Pods to be ready in rook-ceph-system namespace:")
-			podStatus := utils.NewpodStatus()
-			for podStatus.Running != 7 {
-				cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
-				cmd.Flags().Set("output", "yaml")
-				cmd.Run(cmd, []string{command})
-				podStatus.CountPods(out.Bytes())
-				log.Print("Waiting...")
-				out.Reset()
-				time.Sleep(5 * time.Second)
-			}
-			co.SwitchContext("rook-ceph")
 
-		} else if commandNumber == 6 {
+		if commandNumber == 4 {
 			//After the pods in rook-ceph are provisioned wait for them to become ready before moving on
 			log.Print("Waiting for pods to be ready in rook-ceph")
 			podStatus := utils.NewpodStatus()
-			for podStatus.Running != 9 && podStatus.Succeeded != 3 {
+			for podStatus.Running != 23 && podStatus.Succeeded != 3 {
 				cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 				cmd.Flags().Set("output", "yaml")
 				cmd.Run(cmd, []string{command})
 				podStatus.CountPods(out.Bytes())
-				log.Print("Waiting...")
+				log.Debug(podStatus)
+				log.Info("Waiting...")
 				out.Reset()
 				time.Sleep(5 * time.Second)
 			}
@@ -86,7 +77,7 @@ func cephSetup() {
 				log.Fatal(err)
 			}
 			cmd.Run(cmd, []string{})
-			log.Print(out.String())
+			log.Info(out.String())
 			out.Reset()
 		}
 	}

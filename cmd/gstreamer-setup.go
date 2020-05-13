@@ -17,8 +17,9 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os/exec"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/IoTCLI/cmd/utils"
 	"github.com/spf13/cobra"
@@ -49,7 +50,7 @@ to quickly create a Cobra application.`,
 
 func gstreamerLocalSetup() {
 
-	cmd := exec.Command("/home/adkadam/work/golang/iot-dev/cmd/startup.sh")
+	cmd := exec.Command("https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/gstreamer/startup.sh")
 	out, error := cmd.Output()
 	if error != nil {
 		println(error.Error())
@@ -64,7 +65,7 @@ func gstreamerLocalSetup() {
 		fmt.Scanln(&key)
 
 		if key == "s" {
-			cmd2 := exec.Command("/bin/sh", "-c", " docker kill gstreamer_launch_2")
+			cmd2 := exec.Command("/bin/sh", "-c", " docker kill gstreamer_container")
 			out2, error2 := cmd2.Output()
 			if error2 != nil {
 				println(error2.Error())

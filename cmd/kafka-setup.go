@@ -17,8 +17,8 @@ limitations under the License.
 package cmd
 
 import (
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -66,7 +66,7 @@ func kafkaSetup() {
 
 	co.SwitchContext(kafkaSetupNamespaceFlag)
 
-	log.Println("Provision Kafka")
+	log.Info("Provision Kafka")
 	for _, command := range co.Commands {
 		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
 		err := cmd.Flags().Set("filename", command)
@@ -74,7 +74,7 @@ func kafkaSetup() {
 			log.Fatal(err)
 		}
 		cmd.Run(cmd, []string{})
-		log.Print(out.String())
+		log.Info(out.String())
 		out.Reset()
 	}
 	//Remove tempfile when done
@@ -93,7 +93,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("Kafka setup called")
+		log.Info("Kafka setup called")
 		kafkaSetup()
 
 	},

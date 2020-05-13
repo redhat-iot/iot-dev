@@ -19,10 +19,14 @@ import (
 	"log"
 
 	"github.com/IoTCLI/cmd/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/delete"
+<<<<<<< HEAD
 	//"time"
+=======
+>>>>>>> 9809cb2abeca22b5ed2c28099b35ee268a52029c
 )
 
 //Made from Instructions @https://opendatahub.io/docs/administration/advanced-installation/object-storage.html for installing
@@ -54,7 +58,7 @@ func cephDestroy() {
 			log.Fatal(err)
 		}
 		cmd.Run(cmd, []string{})
-		log.Print(out.String())
+		log.Info(out.String())
 		out.Reset()
 
 	}
@@ -72,7 +76,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("destroy called")
+		log.Info("destroy called")
 		cephDestroy()
 	},
 }

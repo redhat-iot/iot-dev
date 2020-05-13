@@ -17,7 +17,7 @@ package cmd
 
 import (
 	//"io/ioutil"
-	"log"
+	log "github.com/sirupsen/logrus"
 	//"os"
 	"bytes"
 	"crypto/tls"

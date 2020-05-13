@@ -16,8 +16,8 @@ limitations under the License.
 package cmd
 
 import (
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 

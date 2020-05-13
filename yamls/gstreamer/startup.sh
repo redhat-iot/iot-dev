@@ -3,7 +3,7 @@
 
 xhost local:root
 
-docker run -it --privileged --net=host \
+docker run -it --name gstreamer_container --privileged --net=host \
 \
 -v ~/.Xauthority:/root/.Xauthority \
 -v /tmp/.X11-unix:/tmp/.X11-unix \

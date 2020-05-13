@@ -18,11 +18,14 @@ package cmd
 import (
 	b64 "encoding/base64"
 	"io/ioutil"
-	"log"
+	"os"
+	"strings"
+
 	"os"
 	"strings"
 
 	"github.com/IoTCLI/cmd/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"

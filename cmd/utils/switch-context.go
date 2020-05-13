@@ -1,16 +1,11 @@
 package utils
 
 import (
-	"log"
-	"os"
-	"strings"
-
-	//"time"
-
-	//"github.com/spf13/cobra"
-
+	log "github.com/sirupsen/logrus"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	kcmdutil "k8s.io/kubectl/pkg/cmd/util"
+	"os"
+	"strings"
 
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -98,7 +93,7 @@ func (co *CommandOptions) SwitchContext(nameSpace string) {
 	co.configFlags = kcmdutil.NewMatchVersionFlags(newconfigFlags)
 	co.CurrentFactory = kcmdutil.NewFactory(co.configFlags)
 
-	log.Println("Context switched to namespace:", co.userSpecifiedNamespace)
+	log.Info("Context switched to namespace:", co.userSpecifiedNamespace)
 
 }
 
