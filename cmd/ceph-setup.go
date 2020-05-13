@@ -31,19 +31,6 @@ func cephSetup() {
 	//Make command options for Knative Setup
 	co := utils.NewCommandOptions()
 
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "service-")
-	if err != nil {
-		log.Fatal("Cannot create temporary file", err)
-	}
-	defer os.Remove(tmpFile.Name())
-
-	//Get Default Storage Class
-
-	sedCommands := []string{` /- name: S3_ID/,/- name: S3_SECRET_KEY/s/value: .*/value: ` + string(decodedcephAccessKey) + `/`, ` /- name: CEPH_ENDPOINT/,/- name: S3_ID/s/value: .*/value: http:\/\/` + cephEndpoint + `/`,
-		` /- name: S3_SECRET_KEY/,/- name: TF_URL/s/value: .*/value: ` + string(decodedcephSecretKey) + `/`, ` /- name: TF_URL/,/value:/s/value: .*/value: http:\/\/` + tensorflowIP + `:8501\/v1\/models\/ssdlite_mobilenet_v2_coco_2018_05_09:predict/`}
-
-	myOutput := utils.RemoteSed(sedCommands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/knative/services/video-analytics.yaml")
-
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/common.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/operator-openshift.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/cluster-on-pvc.yaml")
