@@ -51,7 +51,7 @@ func cephSetup() {
 			//After the pods in rook-ceph are provisioned wait for them to become ready before moving on
 			log.Print("Waiting for pods to be ready in rook-ceph")
 			podStatus := utils.NewpodStatus()
-			for podStatus.Running != 22 && podStatus.Succeeded != 3 {
+			for podStatus.Running != 23 && podStatus.Succeeded != 3 {
 				cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 				cmd.Flags().Set("output", "yaml")
 				cmd.Run(cmd, []string{command})
