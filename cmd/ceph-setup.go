@@ -45,7 +45,7 @@ func cephSetup() {
 	//Switch Context and Reload Config Flags
 	co.SwitchContext("rook-ceph")
 
-	log.Println("Setup Ceph Object Storage with Rook Operator")
+	log.Println("Setup Ceph Object Storage with Rook Operator v1.3.2")
 	for commandNumber, command := range co.Commands {
 
 		if commandNumber == 4 {
@@ -58,7 +58,7 @@ func cephSetup() {
 				cmd.Run(cmd, []string{command})
 				podStatus.CountPods(out.Bytes())
 				log.Debug(podStatus)
-				log.Info("Waiting...")
+				log.Info("Waiting on Ceph Deployment...")
 				out.Reset()
 				time.Sleep(5 * time.Second)
 			}

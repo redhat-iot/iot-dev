@@ -27,6 +27,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
 	"k8s.io/kubectl/pkg/cmd/get"
+	"strconv"
 )
 
 var (
@@ -207,13 +208,17 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Println("Knative Service called")
-
-		if status {
-			serviceStatus()
-		} else if logView {
-			//logs(args[0])
+		cobra.ExactArgs(1)
+		if len(args) != 1 {
+			log.Fatal("Wrong number of Input arguments expected 1 ceph user got " + strconv.Itoa(len(args)))
 		} else {
-			service(args[0])
+			if status {
+				serviceStatus()
+			} else if logView {
+				//logs(args[0])
+			} else {
+				service(args[0])
+			}
 		}
 	},
 }
@@ -231,7 +236,7 @@ func init() {
 	// is called directly, e.g.:
 	// serviceCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	knativeServiceCmd.Flags().BoolVarP(&status, "status", "S", false, "Show Status of the Service")
-	knativeServiceCmd.Flags().BoolVarP(&logView, "logView", "l", false, "Show logs of the Service")
+	//knativeServiceCmd.Flags().BoolVarP(&logView, "logView", "l", false, "Show logs of the Service")
 	knativeServiceCmd.Flags().StringVarP(&knativeServiceNamespaceFlag, "namespace", "n", "knative-eventing", "Option to specify namespace for knative service deployment, defaults to 'knative-eventing'")
 	knativeServiceCmd.Flags().StringVarP(&cephEndpoint, "cephEndpoint", "c", "", "Option to specify ceph object storage endpoint to service")
 	knativeServiceCmd.Flags().StringVarP(&cephAccessKey, "cephAccessKey", "a", "", "Option to specify ceph object storage access key to service")

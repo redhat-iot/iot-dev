@@ -94,7 +94,7 @@ func kafkaSetup() {
 		cmd.Run(cmd, []string{"pods"})
 		podStatus.CountPods(out.Bytes())
 		log.Debug(podStatus)
-		log.Info("Waiting...")
+		log.Info("Waiting for Kafka deployment...")
 		out.Reset()
 		time.Sleep(5 * time.Second)
 	}

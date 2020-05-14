@@ -31,18 +31,18 @@ func cephDestroy() {
 
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/route.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/object-user.yaml")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/object.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/object-openshift.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/toolbox.yaml")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/cluster.yaml")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/operator.yaml")
-	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/scc.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/cluster-on-pvc.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/operator-openshift.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/ceph/setup/common.yaml")
 
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
 	//Switch Context and Reload Config Flags
 	co.SwitchContext("rook-ceph-system")
 
-	log.Println("Provision Knative Source")
+	log.Println("Removing Ceph Via Rook v1.3.2")
 	for _, command := range co.Commands {
 		cmd := delete.NewCmdDelete(co.CurrentFactory, IOStreams)
 		//Kubectl signals missing field, set validate to false to ignore this
@@ -56,7 +56,10 @@ func cephDestroy() {
 		out.Reset()
 
 	}
-
+	log.Println("For removal to be complete the user must manually remove rook related files from the worker nodes in the following directorys:")
+	log.Println("1./var/lib/rook")
+	log.Println("2./var/lib/kubelet/plugins")
+	log.Println("3./var/lib/kubelet/plugins-registry")
 }
 
 // destroyCmd represents the destroy command

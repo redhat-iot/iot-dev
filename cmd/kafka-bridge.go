@@ -22,6 +22,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
 	"k8s.io/kubectl/pkg/cmd/get"
+	"time"
 )
 
 var (
@@ -54,6 +55,21 @@ func kafkaBridgeRoute() {
 		log.Print(out.String())
 		out.Reset()
 	}
+
+	//After pods for Kafka bridge is provisioned wait for them to become ready before moving on
+	log.Print("Waiting for Kafka Bridge to be ready")
+	podStatus := utils.NewpodStatus()
+	for podStatus.Running >= 5 {
+		cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
+		cmd.Flags().Set("output", "yaml")
+		cmd.Run(cmd, []string{"pods"})
+		podStatus.CountPods(out.Bytes())
+		log.Debug(podStatus)
+		log.Info("Waiting for Kafka Bridge...")
+		out.Reset()
+		time.Sleep(5 * time.Second)
+	}
+	log.Print("Kafka Deployment is ready")
 
 	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 	cmd.Flags().Set("output", "jsonpath={.spec.host}")
@@ -93,6 +109,21 @@ func kafkaBridge() {
 		log.Print(out.String())
 		out.Reset()
 	}
+
+	//After pods for Kafka bridge is provisioned wait for them to become ready before moving on
+	log.Print("Waiting for Kafka Bridge to be ready")
+	podStatus := utils.NewpodStatus()
+	for podStatus.Running != 5 {
+		cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
+		cmd.Flags().Set("output", "yaml")
+		cmd.Run(cmd, []string{"pods"})
+		podStatus.CountPods(out.Bytes())
+		log.Debug(podStatus)
+		log.Info("Waiting for Kafka Bridge...")
+		out.Reset()
+		time.Sleep(5 * time.Second)
+	}
+	log.Print("Kafka Deployment is ready")
 
 	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 	cmd.Flags().Set("output", "jsonpath={.spec.host}")
@@ -139,6 +170,6 @@ func init() {
 	// is called directly, e.g.:
 	// bridgeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	kafkaBridgeCmd.Flags().StringVarP(&kafkaBridgeNamespaceFlag, "namespace", "n", "kafka", "Option to specify namespace for kafka deletion, defaults to 'kafka'")
-
-	kafkaBridgeCmd.Flags().BoolP("route", "r", false, "Setup kafka bridge using route, defaults to using ingress")
+	//Default to using Route
+	kafkaBridgeCmd.Flags().BoolP("route", "r", true, "Setup kafka bridge using route, defaults to using ingress")
 }

@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/get"
+	"strconv"
 )
 
 func getCredentials(user string) {
@@ -33,14 +34,14 @@ func getCredentials(user string) {
 	//Switch Context and Reload Config Flags
 	co.SwitchContext("rook-ceph")
 
-	log.Info("Get S3 secrets, save for possible later use:")
+	log.Print("Get S3 secrets, save for possible later use:")
 	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
-	cmd.Flags().Set("output", "jsonpath=.data")
+	cmd.Flags().Set("output", "jsonpath={.data}")
 	cmd.Run(cmd, []string{co.Commands[0], "rook-ceph-object-user-my-store-" + user})
 	log.Info(out.String())
 	out.Reset()
 
-	log.Info("Ceph Endpoint URL: ")
+	log.Print("Ceph Endpoint URL: ")
 	cmd = get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
 	cmd.Flags().Set("output", "jsonpath={.spec.host}")
 	cmd.Run(cmd, []string{"route", "ceph-route"})
@@ -60,7 +61,12 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		log.Info("Ceph Secrets called")
-		getCredentials(args[0])
+		cobra.ExactArgs(1)
+		if len(args) != 1 {
+			log.Fatal("Wrong number of Input arguments expected 1 ceph user got " + strconv.Itoa(len(args)))
+		} else {
+			getCredentials(args[0])
+		}
 	},
 }
 
