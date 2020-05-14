@@ -129,7 +129,7 @@ func service(service string) {
 
 }
 
-func serviceStatus() {
+func serviceStatus(service string) {
 
 	//Make command options for Knative Setup
 	co := utils.NewCommandOptions()
@@ -145,7 +145,7 @@ func serviceStatus() {
 	log.Println("Get Knative Service Status")
 
 	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
-	cmd.Run(cmd, []string{"ksvc"})
+	cmd.Run(cmd, []string{"ksvc", service})
 	log.Print(out.String())
 	out.Reset()
 }
@@ -213,7 +213,7 @@ to quickly create a Cobra application.`,
 			log.Fatal("Wrong number of Input arguments expected 1 ceph user got " + strconv.Itoa(len(args)))
 		} else {
 			if status {
-				serviceStatus()
+				serviceStatus(args[0])
 			} else if logView {
 				//logs(args[0])
 			} else {
