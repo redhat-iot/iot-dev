@@ -24,7 +24,7 @@ import (
 // knativeCmd represents the knative command
 var knativeCmd = &cobra.Command{
 	Use:   "knative",
-	Short: "A brief description of your command",
+	Short: "Setup Knative serving and eventing for serverless application",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

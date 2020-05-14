@@ -17,15 +17,16 @@ package cmd
 
 import (
 	b64 "encoding/base64"
+	"io/ioutil"
+	"os"
+	"strings"
+
 	"github.com/IoTCLI/cmd/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
 	"k8s.io/kubectl/pkg/cmd/get"
-	"os"
-	"strings"
 )
 
 var (
@@ -197,7 +198,7 @@ func logs(name string) {
 // serviceCmd represents the service command
 var knativeServiceCmd = &cobra.Command{
 	Use:   "service",
-	Short: "A brief description of your command",
+	Short: "Setup Knative service for video analtytics",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

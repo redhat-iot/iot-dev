@@ -62,7 +62,7 @@ func cephDestroy() {
 // destroyCmd represents the destroy command
 var cephDestroyCmd = &cobra.Command{
 	Use:   "destroy",
-	Short: "A brief description of your command",
+	Short: "Destroy the Ceph cluster",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

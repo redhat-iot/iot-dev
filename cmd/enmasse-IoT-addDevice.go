@@ -21,13 +21,15 @@ import (
 	//"os"
 	"bytes"
 	"crypto/tls"
-	"github.com/spf13/cobra"
 	"net/http"
 	"strings"
+
+	"github.com/spf13/cobra"
 
 	//in package import
 	"github.com/IoTCLI/cmd/utils"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+
 	//"k8s.io/kubectl/pkg/cmd/"
 	"k8s.io/kubectl/pkg/cmd/get"
 )
@@ -113,7 +115,7 @@ func device(tenant string, deviceID string) {
 // addDeviceCmd represents the addDevice command
 var addDeviceCmd = &cobra.Command{
 	Use:   "addDevice",
-	Short: "A brief description of your command",
+	Short: "Add an IoT device to enmasse",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

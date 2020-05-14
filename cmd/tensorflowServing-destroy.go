@@ -52,7 +52,7 @@ func tensorflowServingDestroy() {
 // tensorflowServingDestroyCmd represents the tensorflowServingDestroy command
 var tensorflowServingDestroyCmd = &cobra.Command{
 	Use:   "destroy",
-	Short: "A brief description of your command",
+	Short: "Destroy the deployed tensorflow service",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

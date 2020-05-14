@@ -16,13 +16,14 @@ limitations under the License.
 package cmd
 
 import (
+	"time"
+
 	"github.com/IoTCLI/cmd/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
 	"k8s.io/kubectl/pkg/cmd/get"
-	"time"
 )
 
 //Made from Instructions @https://opendatahub.io/docs/administration/advanced-installation/object-storage.html for installing
@@ -81,7 +82,7 @@ func cephSetup() {
 // setupCmd represents the setup command
 var cephSetupCmd = &cobra.Command{
 	Use:   "setup",
-	Short: "A brief description of your command",
+	Short: "Setup Ceph Object storage",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
