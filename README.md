@@ -66,7 +66,7 @@ The `IoTCLI` can install and setup Knative on an Openshift cluster, deploy Knati
 
 #### Persistent Storage 
 
-Persistent storage is implemented using [Ceph Object Storage](https://ceph.io/ceph-storage/object-storage/) deployed via the [Rook Operator](https://rook.io/)
+Persistent storage is implemented using [Ceph Object Storage](https://ceph.io/ceph-storage/object-storage/) deployed via the [Rook Operator](https://rook.io/) V1.3.2
 
 ### On Edge 
 
