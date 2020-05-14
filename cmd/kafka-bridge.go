@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
+	"k8s.io/kubectl/pkg/cmd/get"
 )
 
 var (
@@ -53,7 +54,12 @@ func kafkaBridgeRoute() {
 		log.Print(out.String())
 		out.Reset()
 	}
-	log.Println("To check status of Kafka HTTP bridge run 'curl -v GET http://my-bridge.io/healthy'")
+
+	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
+	cmd.Flags().Set("output", "jsonpath={.spec.host}")
+	cmd.Run(cmd, []string{"route", "my-bridge-route"})
+	log.Info("To check status of Kafka HTTP bridge run 'curl -v GET " + out.String() + "/healthy'")
+	out.Reset()
 }
 
 func kafkaBridge() {
@@ -87,7 +93,13 @@ func kafkaBridge() {
 		log.Print(out.String())
 		out.Reset()
 	}
-	log.Println("To check status of Kafka HTTP bridge run 'curl -v GET http://my-bridge.io/healthy'")
+
+	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
+	cmd.Flags().Set("output", "jsonpath={.spec.host}")
+	cmd.Run(cmd, []string{"pods"})
+	log.Info("To check status of Kafka HTTP bridge run 'curl -v GET " + out.String() + "/healthy'")
+	out.Reset()
+
 }
 
 // bridgeCmd represents the bridge command

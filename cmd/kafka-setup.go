@@ -27,6 +27,8 @@ import (
 	"github.com/IoTCLI/cmd/utils"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
+	"k8s.io/kubectl/pkg/cmd/get"
+	"time"
 )
 
 var (
@@ -80,6 +82,24 @@ func kafkaSetup() {
 	//Remove tempfile when done
 
 	os.Remove(tmpFile.Name())
+
+	//Wait until all resources are up
+
+	//After the pods in rook-ceph are provisioned wait for them to become ready before moving on
+	log.Print("Waiting for Kafka deployment to be ready")
+	podStatus := utils.NewpodStatus()
+	for podStatus.Running != 4 {
+		cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
+		cmd.Flags().Set("output", "yaml")
+		cmd.Run(cmd, []string{"pods"})
+		podStatus.CountPods(out.Bytes())
+		log.Debug(podStatus)
+		log.Info("Waiting...")
+		out.Reset()
+		time.Sleep(5 * time.Second)
+	}
+	log.Print("Kafka Deployment is ready")
+
 }
 
 // setupCmd represents the setup command

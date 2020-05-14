@@ -35,8 +35,15 @@ func getCredentials(user string) {
 
 	log.Info("Get S3 secrets, save for possible later use:")
 	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
-	cmd.Flags().Set("output", "json")
+	cmd.Flags().Set("output", "jsonpath=.data")
 	cmd.Run(cmd, []string{co.Commands[0], "rook-ceph-object-user-my-store-" + user})
+	log.Info(out.String())
+	out.Reset()
+
+	log.Info("Ceph Endpoint URL: ")
+	cmd = get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
+	cmd.Flags().Set("output", "jsonpath={.spec.host}")
+	cmd.Run(cmd, []string{"route", "ceph-route"})
 	log.Info(out.String())
 	out.Reset()
 }

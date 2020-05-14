@@ -79,11 +79,11 @@ func knativeServing() {
 		knativeStatus := strings.Split(out.String(), " ")
 		out.Reset()
 
-		log.Debug("The current response from Knative: ", knativeStatus)
+		log.Debug("The current response from Knative Serving: ", knativeStatus)
 		log.Debug("Length of response: ", len(knativeStatus))
 
 		if len(knativeStatus) != 5 {
-			log.Info("Still Starting Knative Resources")
+			log.Info("Still Starting Knative Serving Resources")
 			continue
 		}
 		dependencies, err = strconv.ParseBool(knativeStatus[0])
@@ -150,6 +150,14 @@ func knativeEventing() {
 		cmd.Run(cmd, []string{"knativeeventing.operator.knative.dev/knative-eventing"})
 
 		knativeStatus := strings.Split(out.String(), " ")
+
+		log.Debug("The current response from Knative Eventing: ", knativeStatus)
+		log.Debug("Length of response: ", len(knativeStatus))
+		//Wait for pods to be up before entering status loop
+		if len(knativeStatus) != 5 {
+			log.Info("Still Starting Knative Serving Resources")
+			continue
+		}
 
 		install, err = strconv.ParseBool(knativeStatus[1])
 		if err != nil {

@@ -442,6 +442,7 @@ k8s.io/kube-openapi v0.0.0-20200121204235-bf4fb3bd569c h1:/KUFqjjqAcY4Us6luF5RDN
 k8s.io/kube-openapi v0.0.0-20200121204235-bf4fb3bd569c/go.mod h1:GRQhZsXIAJ1xR0C9bd8UpWHZ5plfAS9fzPjJuQ6JL3E=
 k8s.io/kubectl v0.18.1 h1:2b5x4BPlZd+ypSk0NBOKoVjbqkTj5Xp3kAzHg9O12yo=
 k8s.io/kubectl v0.18.1/go.mod h1:7bLKKp5gSrtuSCIbclgifVOCwdLBs+h3oETVqLn1928=
+k8s.io/kubectl v0.18.2 h1:9jnGSOC2DDVZmMUTMi0D1aed438mfQcgqa5TAzVjA1k=
 k8s.io/metrics v0.18.1/go.mod h1:UnoYSbaiakbuBYgpDEsXjVjk843af/WRHNPR3Wx+2XI=
 k8s.io/utils v0.0.0-20200324210504-a9aa75ae1b89 h1:d4vVOjXm687F1iLSP2q3lyPPuyvTUt3aVoBpi2DqRsU=
 k8s.io/utils v0.0.0-20200324210504-a9aa75ae1b89/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
