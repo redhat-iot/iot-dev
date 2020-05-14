@@ -50,7 +50,7 @@ to quickly create a Cobra application.`,
 
 func gstreamerLocalSetup() {
 
-	cmd := exec.Command("https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/gstreamer/startup.sh")
+	cmd := exec.Command("https://raw.githubusercontent.com/redhat-iot/iot-dev/master/scripts/gstreamer/startup.sh")
 	out, error := cmd.Output()
 	if error != nil {
 		println(error.Error())
