@@ -17,12 +17,13 @@ package cmd
 
 import (
 	"fmt"
+	"io"
+	"os"
+
 	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"io"
-	"os"
 )
 
 var cfgFile string
@@ -32,13 +33,9 @@ var dryRun string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "IoTCLI",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Setting up Cloud native Egde Applications with various messaging backends",
+	Long: `Setting up Cloud native Egde Applications with various messaging backends.
+Allows user to track the IoTDevices, setup various messaging backends like Kafka or Enmasse, deploy gstreamer analytics as smart edge device etc`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	//	Run: func(cmd *cobra.Command, args []string) { },

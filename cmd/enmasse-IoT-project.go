@@ -23,10 +23,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/cobra"
-
-	//in package import
 	"github.com/IoTCLI/cmd/utils"
+	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
 	"k8s.io/kubectl/pkg/cmd/get"
@@ -118,7 +116,7 @@ func createProject() {
 // projectCmd represents the project command
 var enmasseIoTProjectCmd = &cobra.Command{
 	Use:   "project",
-	Short: "A brief description of your command",
+	Short: "Setup enmasse project",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

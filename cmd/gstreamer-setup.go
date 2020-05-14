@@ -17,6 +17,8 @@ package cmd
 
 import (
 	"fmt"
+	"os/exec"
+
 	log "github.com/sirupsen/logrus"
 
 	"github.com/IoTCLI/cmd/utils"
@@ -28,7 +30,7 @@ import (
 // setupCmd represents the setup command
 var gstreamerSetupCmd = &cobra.Command{
 	Use:   "setup",
-	Short: "A brief description of your command",
+	Short: "Setup Gstreamer with Openvino toolkit for video streaming and analytics",
 	Long: `A longer descriptSion that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -36,9 +38,48 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(" gstreamer setup called")
-		gstreamerSetup()
+		log.Println("Gstreamer setup called")
+		fstatus, _ := cmd.Flags().GetBool("local")
+		if fstatus { // if status is true,
+			gstreamerLocalSetup()
+		} else {
+			gstreamerSetup()
+		}
 	},
+}
+
+func gstreamerLocalSetup() {
+
+	cmd := exec.Command("https://raw.githubusercontent.com/redhat-iot/iot-dev/master/scripts/gstreamer/startup.sh")
+	out, error := cmd.Output()
+	if error != nil {
+		println(error.Error())
+		return
+	} else {
+		log.Println(string(out))
+	}
+
+	for {
+		fmt.Print("Press 'S' to stop the Gstreamer container: ")
+		var key string
+		fmt.Scanln(&key)
+
+		if key == "s" {
+			cmd2 := exec.Command("/bin/sh", "-c", " docker kill gstreamer_container")
+			out2, error2 := cmd2.Output()
+			if error2 != nil {
+				println(error2.Error())
+				return
+			} else {
+				log.Println(string(out2))
+			}
+			fmt.Print("Container stopped: ")
+
+			break
+
+		}
+	}
+
 }
 
 func gstreamerSetup() {
@@ -80,4 +121,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// setupCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	gstreamerSetupCmd.Flags().BoolP("local", "l", false, "Setup gstreamer locally")
 }

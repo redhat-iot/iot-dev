@@ -17,13 +17,14 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
 // gstreamerCmd represents the gstreamer command
 var gstreamerCmd = &cobra.Command{
 	Use:   "gstreamer",
-	Short: "A brief description of your command",
+	Short: "Setup Gstreamer with OpenVino toolkit for video streaming with analytics ",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

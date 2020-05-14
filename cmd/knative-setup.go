@@ -16,19 +16,22 @@ limitations under the License.
 package cmd
 
 import (
-	log "github.com/sirupsen/logrus"
 	"strconv"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
 
 	//in package import
 	"github.com/IoTCLI/cmd/utils"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+
 	//"k8s.io/kubectl/pkg/cmd/"
-	"k8s.io/kubectl/pkg/cmd/apply"
-	"k8s.io/kubectl/pkg/cmd/get"
 	"strings"
 	"time"
+
+	"k8s.io/kubectl/pkg/cmd/apply"
+	"k8s.io/kubectl/pkg/cmd/get"
 )
 
 //var setupStatus = false
@@ -217,7 +220,7 @@ func knativeStatus() {
 // setupCmd represents the setup command
 var knativeSetupCmd = &cobra.Command{
 	Use:   "setup",
-	Short: "A brief description of your command",
+	Short: "Setup Knative serving and eventing for serverless application",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

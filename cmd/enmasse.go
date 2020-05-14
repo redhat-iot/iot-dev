@@ -24,7 +24,7 @@ import (
 // enmasseCmd represents the enmasse command
 var enmasseCmd = &cobra.Command{
 	Use:   "enmasse",
-	Short: "A brief description of your command",
+	Short: "Setup Enmasse as a messaging backend",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

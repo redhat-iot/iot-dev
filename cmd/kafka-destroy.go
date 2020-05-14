@@ -32,9 +32,6 @@ func kafkaDestroy() {
 	//Make command options for Kafka Setup
 	co := utils.NewCommandOptions()
 
-	_ = utils.DownloadAndUncompress("oc.gz", "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz")
-	log.Println("oc Source folder: ", "oc")
-
 	//Fill in the commands that must be applied to
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/setup/kafka.yaml")
 	co.Commands = append(co.Commands, "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.17.0/strimzi-cluster-operator-0.17.0.yaml")
@@ -63,7 +60,7 @@ func kafkaDestroy() {
 // destroyCmd represents the destroy command
 var kafkaDestroyCmd = &cobra.Command{
 	Use:   "destroy",
-	Short: "A brief description of your command",
+	Short: "Destroy the Kafka cluster along with Strimzi operator",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

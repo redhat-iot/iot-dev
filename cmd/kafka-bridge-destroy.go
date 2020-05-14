@@ -16,36 +16,35 @@ limitations under the License.
 package cmd
 
 import (
+	"log"
+
 	"github.com/IoTCLI/cmd/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"k8s.io/kubectl/pkg/cmd/apply"
-	"k8s.io/kubectl/pkg/cmd/get"
+	"k8s.io/kubectl/pkg/cmd/delete"
 )
 
 var (
-	kafkaBridgeNamespaceFlag string
+	kafkaBridgeDestroyNamespaceFlag string
 )
 
-func kafkaBridgeRoute() {
+func kafkaBridgeRouteDestroy() {
+
+	//Make command options for Kafka Setup
 	co := utils.NewCommandOptions()
 
-	//Setup kafka bridge
+	//Fill in the commands that must be applied to
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/bridge/route.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/bridge/kafka-bridge.yaml")
 
+	//
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
-	co.SwitchContext(kafkaBridgeNamespaceFlag)
+	co.SwitchContext(kafkaBridgeDestroyNamespaceFlag)
 
-	//Reload config flags after switching context
-
-	log.Println("Provision Kafka Http Bridge using route")
+	log.Println("Destroy Kafka Bridge with route from cluster")
 	for _, command := range co.Commands {
-		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
-		//Kubectl signals missing field, set validate to false to ignore this
-		cmd.Flags().Set("validate", "false")
+		cmd := delete.NewCmdDelete(co.CurrentFactory, IOStreams)
 		err := cmd.Flags().Set("filename", command)
 		if err != nil {
 			log.Fatal(err)
@@ -54,37 +53,31 @@ func kafkaBridgeRoute() {
 		log.Print(out.String())
 		out.Reset()
 	}
-
-	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
-	cmd.Flags().Set("output", "jsonpath={.spec.host}")
-	cmd.Run(cmd, []string{"route", "my-bridge-route"})
-	log.Info("To check status of Kafka HTTP bridge run 'curl -v GET " + out.String() + "/healthy'")
-	out.Reset()
+	//Remove tempfile when done
 }
 
-func kafkaBridge() {
+func kafkaBridgeDestroy() {
 
+	//Make command options for Kafka Setup
 	co := utils.NewCommandOptions()
 
-	//Setup kafka bridge
+	_ = utils.DownloadAndUncompress("oc.gz", "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz")
+	log.Println("oc Source folder: ", "oc")
+
+	//Fill in the commands that must be applied to
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/bridge/kafka-bridge.yaml")
-	//Setup Nginix Ingress **CONVERT TO OPENSHIFT ROUTE AT SOME POINT** to connect to bridge from outside the cluster
-	//Get Nginix controller and apply to cluster
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/mandatory.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/provider/cloud-generic.yaml")
-	//Setup the K8s ingress resource
-
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/bridge/ingress.yaml")
 
+	//
 	IOStreams, _, out, _ := genericclioptions.NewTestIOStreams()
 
-	co.SwitchContext(kafkaBridgeNamespaceFlag)
+	co.SwitchContext(kafkaBridgeDestroyNamespaceFlag)
 
-	//Reload config flags after switching context
-
-	log.Println("Provision Kafka Http Bridge")
+	log.Println("Destroy Kafka Bridge with ingress from cluster")
 	for _, command := range co.Commands {
-		cmd := apply.NewCmdApply("kubectl", co.CurrentFactory, IOStreams)
+		cmd := delete.NewCmdDelete(co.CurrentFactory, IOStreams)
 		err := cmd.Flags().Set("filename", command)
 		if err != nil {
 			log.Fatal(err)
@@ -93,19 +86,13 @@ func kafkaBridge() {
 		log.Print(out.String())
 		out.Reset()
 	}
-
-	cmd := get.NewCmdGet("kubectl", co.CurrentFactory, IOStreams)
-	cmd.Flags().Set("output", "jsonpath={.spec.host}")
-	cmd.Run(cmd, []string{"pods"})
-	log.Info("To check status of Kafka HTTP bridge run 'curl -v GET " + out.String() + "/healthy'")
-	out.Reset()
-
+	//Remove tempfile when done
 }
 
-// bridgeCmd represents the bridge command
-var kafkaBridgeCmd = &cobra.Command{
-	Use:   "bridge",
-	Short: "Setup Kafka bridge to send data over to the Kafka cluster",
+// destroyCmd represents the destroy command
+var kafkaBridgeDestroyCmd = &cobra.Command{
+	Use:   "destroy",
+	Short: "Destory the Kafka Bridge",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -113,32 +100,31 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-
 		fstatus, _ := cmd.Flags().GetBool("route")
-		if fstatus { // if status is true, call addFloat
-			log.Println("Kafka Http Bridge called using Route")
-			kafkaBridgeRoute()
+		if fstatus { // if status is true, call Kafka bridge destroy with route
+			log.Println("Kafka Bridge Destroy called")
+			kafkaBridgeRouteDestroy()
 		} else {
-			log.Println("Kafka Http Bridge called using Ingress")
-			kafkaBridge()
+			log.Println("Kafka Bridge Destroy called")
+			kafkaBridgeDestroy()
 		}
-
 	},
 }
 
 func init() {
-	kafkaCmd.AddCommand(kafkaBridgeCmd)
+	kafkaBridgeCmd.AddCommand(kafkaBridgeDestroyCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// bridgeCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// destroyCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// bridgeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	kafkaBridgeCmd.Flags().StringVarP(&kafkaBridgeNamespaceFlag, "namespace", "n", "kafka", "Option to specify namespace for kafka deletion, defaults to 'kafka'")
+	// destroyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	kafkaBridgeCmd.Flags().BoolP("route", "r", false, "Setup kafka bridge using route, defaults to using ingress")
+	kafkaBridgeDestroyCmd.Flags().StringVarP(&kafkaBridgeDestroyNamespaceFlag, "namespace", "n", "kafka", "Option to specify namespace for kafka deletion, defaults to 'kafka'")
+
+	kafkaBridgeDestroyCmd.Flags().BoolP("route", "r", false, "Destroy kafka bridge with route, defaults to destroying kafka bridge with ingress")
 }
