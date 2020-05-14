@@ -33,11 +33,8 @@ func kafkaBridgeRouteDestroy() {
 	//Make command options for Kafka Setup
 	co := utils.NewCommandOptions()
 
-	_ = utils.DownloadAndUncompress("oc.gz", "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz")
-	log.Println("oc Source folder: ", "oc")
-
 	//Fill in the commands that must be applied to
-	co.Commands = append(co.Commands, "/home/adkadam/work/golang/iot-dev/yamls/kafka/bridge/route.yaml")
+	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/bridge/route.yaml")
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/bridge/kafka-bridge.yaml")
 
 	//

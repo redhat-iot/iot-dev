@@ -24,10 +24,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
-
-	"github.com/IoTCLI/cmd/utils"
-	"github.com/spf13/cobra"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 func login() {

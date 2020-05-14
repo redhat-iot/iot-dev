@@ -16,8 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"log"
-
 	"github.com/IoTCLI/cmd/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -33,9 +31,6 @@ func kafkaDestroy() {
 
 	//Make command options for Kafka Setup
 	co := utils.NewCommandOptions()
-
-	_ = utils.DownloadAndUncompress("oc.gz", "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz")
-	log.Println("oc Source folder: ", "oc")
 
 	//Fill in the commands that must be applied to
 	co.Commands = append(co.Commands, "https://raw.githubusercontent.com/redhat-iot/iot-dev/master/yamls/kafka/setup/kafka.yaml")

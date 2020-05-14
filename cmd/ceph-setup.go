@@ -16,7 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"log"
 	"time"
 
 	"github.com/IoTCLI/cmd/utils"
@@ -25,10 +24,6 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
 	"k8s.io/kubectl/pkg/cmd/get"
-<<<<<<< HEAD
-=======
-	"time"
->>>>>>> 9809cb2abeca22b5ed2c28099b35ee268a52029c
 )
 
 //Made from Instructions @https://opendatahub.io/docs/administration/advanced-installation/object-storage.html for installing

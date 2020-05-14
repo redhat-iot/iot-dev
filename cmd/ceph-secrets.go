@@ -16,8 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"log"
-
 	"github.com/IoTCLI/cmd/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

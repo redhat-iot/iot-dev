@@ -16,13 +16,14 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/IoTCLI/cmd/utils"
-	"github.com/spf13/cobra"
 	"io/ioutil"
+	"os"
+
+	"github.com/IoTCLI/cmd/utils"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/cmd/apply"
-	"log"
-	"os"
 )
 
 func cephUser(user string) {
